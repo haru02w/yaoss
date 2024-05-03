@@ -6,7 +6,7 @@ list_t *list_create(int (*comparator)(const void *, const void *))
 {
     list_t *new_list = malloc(sizeof *new_list);
 
-    *new_list = (list_t) { .head = NULL, .tail = NULL, .size = 0 };
+    *new_list = (list_t) {.comparator = comparator, .head = NULL, .tail = NULL, .size = 0 };
 
     return new_list;
 }
@@ -69,7 +69,7 @@ list_node_t *list_search(list_t *list, void *key)
 {
     list_node_t *node = list->head;
 
-    for (int i = 0; i < list->size; i++) {
+    for (size_t i = 0; i < list->size; i++) {
         if (list->comparator(node->data, key) == 0) {
             return node;
         }
@@ -85,7 +85,7 @@ void list_free(list_t *list)
     list_node_t *cur_node = list->head;
     list_node_t *tmp_node;
 
-    for (int i = 0; i < list->size; i++) {
+    for (size_t i = 0; i < list->size; i++) {
         tmp_node = cur_node->next;
         free(cur_node);
         cur_node = tmp_node;

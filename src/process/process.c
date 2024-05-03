@@ -1,5 +1,15 @@
 #include "process.h"
+#include "../util/list.h"
 
+int comp_sem(const void *a, const void *b){
+	char *sema = (char*) a;
+	char *semb = (char*) b;
+	return strcmp(sema, semb);
+}
+
+int comp_inst(const void *a, const void *b){
+	return 0;
+}
 
 pdata_t *program_init(char *path){
 	if(!path){
@@ -7,9 +17,13 @@ pdata_t *program_init(char *path){
 		return NULL;
 	}
 	pdata_t *process = malloc(sizeof(pdata_t));
+	process->semaphore = list_create(comp_sem);
+	process->instruction = list_create(comp_inst);
 	FILE *fp = fopen(path, "r");
 	if(!fp){
 		printf("arquivo não encontrado\n");
+		list_free(process->semaphore);
+		list_free(process->instruction);
 		free(process);
 		return NULL;
 	}
@@ -22,8 +36,29 @@ pdata_t *program_init(char *path){
 	process->priority = atoi(buffer);
 	fgets(buffer, sizeof(buffer), fp);
 	process->seg_size = atoi(buffer);
-	//TODO: ler lista de semaforos
+	fgets(buffer, sizeof(buffer), fp);
+	//FIXME: O ultimo semaforo armazena um /n
+	for(int i = 0; buffer[i] != '\0' ; i++){
+		char buff[50];
+		sscanf(&(buffer[i]), "%[^ ]s", buff);
+		int len = strlen(buff);
+		char *aux = malloc(len + 1);
+		strcpy(aux, buff);
+		list_add(process->semaphore, (void *)aux);
+		i = i + len;
+	}
 
+	while(fgets(buffer, sizeof(buffer), fp)){
+		//caso a linha esteja vazia
+		if(!strlen(buffer)) continue;
 
+		//caso a linha estaja em branco
+		if (!strcmp(buffer, "\n") || !strcmp(buffer, "\r\n")) continue;
 
+		list_add(process->instruction, (void *) inst_read(buffer));
+	}
+
+	//TODO: Get pid(process id)
+
+	return process;
 }

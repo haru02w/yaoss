@@ -1,5 +1,5 @@
-#ifndef INSTRUCTION_H_
-#define INSTRUCTION_H_
+#ifndef PROCESS_INSTRUCTION_H_
+#define PROCESS_INSTRUCTION_H_
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -13,4 +13,4 @@ typedef struct instruction {
 
 instruction_t *inst_read(char *string);
 
-#endif // INSTRUCTION_H_
+#endif // PROCESS_INSTRUCTION_H_

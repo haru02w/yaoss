@@ -1,8 +1,9 @@
-#ifndef PROCESS_H_
-#define PROCESS_H_
+#ifndef PROCESS_PROCESS_H_
+#define PROCESS_PROCESS_H_
 #include <stdio.h>
 #include <string.h>
 #include "instruction.h"
+#include "../util/list.h"
 
 typedef struct process_data {
     char nome[20];
@@ -10,9 +11,10 @@ typedef struct process_data {
     int seg;
     int priority;
 	int seg_size;
-	//TODO: lista semaphore
-	//TODO: lista instruction
-
+	list_t *semaphore;
+	list_t *instruction;
 }pdata_t;
 
-#endif // PROCESS_H_
+pdata_t *program_init(char *path);
+
+#endif // PROCESS_PROCESS_H_
