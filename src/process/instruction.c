@@ -1,5 +1,11 @@
 #include "instruction.h"
 
+/**
+ * @brief Converte uma string no formato "opcode time" ou "semOP(sem)" para um ponteiro de instruction_t
+ *
+ * @param string Uma string lida no arquivo do programa
+ * @return instruction_t*
+ */
 instruction_t *inst_read(char *string) {
 	int code = 0;
 	if(string == NULL){
@@ -10,28 +16,46 @@ instruction_t *inst_read(char *string) {
 	for (i = 0; string[i] != ' ' && string[i] != '(';i++){
 		code = (code + string[i]) % 10;
 	}
+	i++;
 	instruction_t *inst =(instruction_t*) malloc(sizeof(instruction_t));
 	switch(code){
 		case 0:{ //P()
 			inst->op = P;
-			//TODO: tratamento semaforo
-			printf("semaforo n implemntado\n");
+			int j;
+			for(j = i; string[j] != ')' && j-i < 9; j++){
+				inst->sem[j-i] = string[j];
+			}
+			inst->sem[j-i] = '\0';
 			break;
 		}
-		case 1: inst->op = EXEC; break;
-		case 2: inst->op = READ; break;
-		case 3: puts("erro1"); break;
-		case 4: puts("erro2"); break;
-		case 5: inst->op = WRITE; break;
+		case 1: {
+			inst->op = EXEC;
+			inst->value = atoi(&(string[i]));
+			break;}
+		case 2: {
+			inst->op = READ;
+			inst->value = atoi(&(string[i]));
+			break;}
+		case 5: {
+			inst->op = WRITE;
+			inst->value = atoi(&(string[i]));
+			break;}
 		case 6:{ //V()
 			inst->op = V;
-			//TODO: tratamento semaforo
-			printf("semaforo n implemntado\n");
+			int j;
+			for(j = i; string[j] != ')' && j-i < 9; j++){
+				inst->sem[j-i] = string[j];
+			}
+			inst->sem[j-i] = '\0';
 			break;
 		}
-		case 7: inst->op = PRINT; break;
+		case 7: {
+			inst->op = PRINT;
+			inst->value = atoi(&(string[i]));
+			break;}
+		default: puts("ERRO de opcode");
 	}
-	inst->value = atoi(&(string[i]));
+
 
 	return inst;
 }

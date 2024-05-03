@@ -1,15 +1,18 @@
-#ifndef PROCESS_PROCESS_H_
-#define PROCESS_PROCESS_H_
-#include<stdio.h>
+#ifndef PROCESS_H_
+#define PROCESS_H_
+#include <stdio.h>
+#include <string.h>
+#include "instruction.h"
 
 typedef struct process_data {
-    char nome[10];
+    char nome[20];
+	int pid;
     int seg;
     int priority;
 	int seg_size;
-	//TODO: lista semafore
+	//TODO: lista semaphore
 	//TODO: lista instruction
 
-};
+}pdata_t;
 
-#endif // PROCESS_PROCESS_H_
+#endif // PROCESS_H_
