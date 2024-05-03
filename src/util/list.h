@@ -12,11 +12,11 @@ typedef struct ListNode {
 typedef struct List {
     struct ListNode *head;
     struct ListNode *tail;
-    int (*comparator)(void *, void *);
+    int (*comparator)(const void *, const void *);
     size_t size;
 } list_t;
 
-list_t *list_create(int (*comparator)(void *, void *));
+list_t *list_create(int (*comparator)(const void *, const void *));
 void list_add(list_t *list, void *data);
 void list_remove(list_t *list, void *data);
 list_node_t *list_search(list_t *list, void *data);

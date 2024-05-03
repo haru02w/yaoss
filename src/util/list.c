@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-list_t *list_create(int (*comparator)(void *, void *))
+list_t *list_create(int (*comparator)(const void *, const void *))
 {
     list_t *new_list = malloc(sizeof *new_list);
 
