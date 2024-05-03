@@ -16,8 +16,10 @@ typedef struct List {
     size_t size;
 } list_t;
 
+list_t *list_create(int (*comparator)(void *, void *));
 void list_add(list_t *list, void *data);
 void list_remove(list_t *list, void *data);
 list_node_t *list_search(list_t *list, void *data);
+void list_free(list_t *list);
 
 #endif // UTIL_LIST_H_
