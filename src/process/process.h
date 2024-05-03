@@ -1,5 +1,5 @@
-#ifndef PROCESS_H_
-#define PROCESS_H_
+#ifndef PROCESS_PROCESS_H_
+#define PROCESS_PROCESS_H_
 #include<stdio.h>
 
 typedef struct process_data {
@@ -12,4 +12,4 @@ typedef struct process_data {
 
 };
 
-#endif // PROCESS_H_
+#endif // PROCESS_PROCESS_H_
