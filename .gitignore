@@ -1,4 +1,5 @@
 .direnv/
+.cache/
 # Nix build
 result
 # make build

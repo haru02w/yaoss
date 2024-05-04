@@ -2,29 +2,29 @@
 #include <assert.h>
 #include <stdlib.h>
 
-list_t *list_create(int (*comparator)(const void *, const void *))
+struct list *list_create(int (*comparator)(const void *, const void *))
 {
-    list_t *new_list = malloc(sizeof *new_list);
+    struct list *new_list = malloc(sizeof *new_list);
 
-    *new_list = (list_t) {
+    *new_list = (struct list) {
         .comparator = comparator, .head = NULL, .tail = NULL, .size = 0
     };
 
     return new_list;
 }
 
-list_node_t *list_node_create(void *data)
+struct list_node *list_node_create(void *data)
 {
-    list_node_t *new_node = malloc(sizeof *new_node);
+    struct list_node *new_node = malloc(sizeof *new_node);
 
-    *new_node = (list_node_t) { .data = data, .next = NULL, .prev = NULL };
+    *new_node = (struct list_node) { .data = data, .next = NULL, .prev = NULL };
 
     return new_node;
 }
 
-void list_add(list_t *list, void *data)
+void list_add(struct list *list, void *data)
 {
-    list_node_t *node = list_node_create(data);
+    struct list_node *node = list_node_create(data);
 
     assert(node != NULL);
 
@@ -39,11 +39,11 @@ void list_add(list_t *list, void *data)
     list->size++;
 }
 
-void list_remove(list_t *list, void *key)
+void list_remove(struct list *list, void *key)
 {
     assert(list != NULL && list->size > 0);
 
-    list_node_t *found_node = list_search(list, key);
+    struct list_node *found_node = list_search(list, key);
 
     if (found_node == NULL) {
         return;
@@ -67,9 +67,9 @@ void list_remove(list_t *list, void *key)
     list->size--;
 }
 
-list_node_t *list_search(list_t *list, void *key)
+struct list_node *list_search(struct list *list, void *key)
 {
-    list_node_t *node = list->head;
+    struct list_node *node = list->head;
 
     for (size_t i = 0; i < list->size; i++) {
         if (list->comparator(node->data, key) == 0) {
@@ -80,12 +80,12 @@ list_node_t *list_search(list_t *list, void *key)
     return NULL;
 }
 
-void list_free(list_t *list)
+void list_destroy(struct list *list)
 {
     assert(list != NULL);
 
-    list_node_t *cur_node = list->head;
-    list_node_t *tmp_node;
+    struct list_node *cur_node = list->head;
+    struct list_node *tmp_node;
 
     for (size_t i = 0; i < list->size; i++) {
         tmp_node = cur_node->next;

@@ -1,4 +1,6 @@
 #include "instruction.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 /**
  * @brief Converte uma string no formato "opcode time" ou "semOP(sem)" para um

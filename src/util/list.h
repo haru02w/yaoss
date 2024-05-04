@@ -1,25 +1,22 @@
-#ifndef UTIL_LIST_H_
-#define UTIL_LIST_H_
-
+#pragma once
 #include <stddef.h>
+#include "byte.h"
 
-typedef struct ListNode {
-    void *data;
-    struct ListNode *next;
-    struct ListNode *prev;
-} list_node_t;
+struct list_node {
+    byte *data;
+    struct list_node *next;
+    struct list_node *prev;
+};
 
-typedef struct List {
-    struct ListNode *head;
-    struct ListNode *tail;
+struct list {
+    struct list_node *head;
+    struct list_node *tail;
     int (*comparator)(const void *, const void *);
     size_t size;
-} list_t;
+};
 
-list_t *list_create(int (*comparator)(const void *, const void *));
-void list_add(list_t *list, void *data);
-void list_remove(list_t *list, void *data);
-list_node_t *list_search(list_t *list, void *data);
-void list_free(list_t *list);
-
-#endif // UTIL_LIST_H_
+struct list *list_create(int (*comparator)(const void *, const void *));
+void list_add(struct list *list, void *data);
+void list_remove(struct list *list, void *data);
+struct list_node *list_search(struct list *list, void *data);
+void list_free(struct list *list);

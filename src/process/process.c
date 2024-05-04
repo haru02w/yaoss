@@ -1,5 +1,9 @@
 #include "process.h"
 #include "../util/list.h"
+#include "instruction.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 int comp_sem(const void *a, const void *b)
 {
