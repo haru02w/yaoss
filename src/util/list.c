@@ -6,7 +6,9 @@ list_t *list_create(int (*comparator)(const void *, const void *))
 {
     list_t *new_list = malloc(sizeof *new_list);
 
-    *new_list = (list_t) {.comparator = comparator, .head = NULL, .tail = NULL, .size = 0 };
+    *new_list = (list_t) {
+        .comparator = comparator, .head = NULL, .tail = NULL, .size = 0
+    };
 
     return new_list;
 }
