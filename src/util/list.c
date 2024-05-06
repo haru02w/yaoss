@@ -4,7 +4,7 @@
 
 struct list *list_create(int (*comparator)(const void *, const void *))
 {
-    struct list *new_list = malloc(sizeof *new_list);
+    struct list *new_list = (struct list *)malloc(sizeof *new_list);
 
     *new_list = (struct list) {
         .comparator = comparator, .head = NULL, .tail = NULL, .size = 0
@@ -15,7 +15,7 @@ struct list *list_create(int (*comparator)(const void *, const void *))
 
 struct list_node *list_node_create(void *data)
 {
-    struct list_node *new_node = malloc(sizeof *new_node);
+    struct list_node *new_node = (struct list_node *) malloc(sizeof *new_node);
 
     *new_node = (struct list_node) { .data = data, .next = NULL, .prev = NULL };
 

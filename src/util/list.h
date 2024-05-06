@@ -19,4 +19,4 @@ struct list *list_create(int (*comparator)(const void *, const void *));
 void list_add(struct list *list, void *data);
 void list_remove(struct list *list, void *data);
 struct list_node *list_search(struct list *list, void *data);
-void list_free(struct list *list);
+void list_destroy(struct list *list);
