@@ -22,7 +22,7 @@ pdata_t *program_init(const char *path)
     }
 
     pdata_t *process = malloc(sizeof *process);
-    process->semaphore = vector_create(sizeof(char*));
+    process->semaphore = vector_create(sizeof(char *));
     process->instruction = vector_create(sizeof(instruction_t));
 
     FILE *fp = fopen(path, "r");
@@ -36,23 +36,23 @@ pdata_t *program_init(const char *path)
 
     char buffer[50];
 
-    //get nome
+    // get nome
     fgets(buffer, sizeof buffer, fp);
     strcpy(process->nome, buffer);
 
-    //get segmento
+    // get segmento
     fgets(buffer, sizeof buffer, fp);
     process->seg = atoi(buffer);
 
-    //get prioridade
+    // get prioridade
     fgets(buffer, sizeof buffer, fp);
     process->priority = atoi(buffer);
 
-    //get tamanho do segmento
+    // get tamanho do segmento
     fgets(buffer, sizeof buffer, fp);
     process->seg_size = atoi(buffer);
 
-    //get lista de semaforos
+    // get lista de semaforos
     fgets(buffer, sizeof buffer, fp);
     // FIXME: O ultimo semaforo armazena um \n
 
@@ -76,7 +76,7 @@ pdata_t *program_init(const char *path)
         if (!strcmp(buffer, "\n") || !strcmp(buffer, "\r\n"))
             continue;
 
-        instruction_t *inst_aux =  inst_read(buffer);
+        instruction_t *inst_aux = inst_read(buffer);
         vector_push_back(&(process->instruction), inst_aux);
         free(inst_aux);
     }
@@ -88,9 +88,10 @@ pdata_t *program_init(const char *path)
     return process;
 }
 
-void program_destroy(pdata_t *program){
-    for(int i = 0; i < program->semaphore.length; i++){
-        free(VEC_GET(program->semaphore, i, char*));
+void program_destroy(pdata_t *program)
+{
+    for (int i = 0; i < program->semaphore.length; i++) {
+        free(VEC_GET(program->semaphore, i, char *));
     }
     vector_destroy(&(program->semaphore));
     vector_destroy(&(program->instruction));
