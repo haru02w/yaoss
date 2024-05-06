@@ -1,5 +1,5 @@
 #include "process.h"
-#include "../util/list.h"
+#include "../util/vector.h"
 #include "instruction.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,31 +22,37 @@ pdata_t *program_init(const char *path)
     }
 
     pdata_t *process = malloc(sizeof *process);
-    process->semaphore = list_create(comp_sem);
-    process->instruction = list_create(comp_inst);
+    process->semaphore = vector_create(sizeof(char*));
+    process->instruction = vector_create(sizeof(instruction_t));
 
     FILE *fp = fopen(path, "r");
     if (!fp) {
         printf("arquivo não encontrado\n");
-        list_free(process->semaphore);
-        list_free(process->instruction);
+        vector_destroy(&(process->semaphore));
+        vector_destroy(&(process->instruction));
         free(process);
         return NULL;
     }
 
     char buffer[50];
+
+    //get nome
     fgets(buffer, sizeof buffer, fp);
     strcpy(process->nome, buffer);
 
+    //get segmento
     fgets(buffer, sizeof buffer, fp);
     process->seg = atoi(buffer);
 
+    //get prioridade
     fgets(buffer, sizeof buffer, fp);
     process->priority = atoi(buffer);
 
+    //get tamanho do segmento
     fgets(buffer, sizeof buffer, fp);
     process->seg_size = atoi(buffer);
 
+    //get lista de semaforos
     fgets(buffer, sizeof buffer, fp);
     // FIXME: O ultimo semaforo armazena um \n
 
@@ -57,7 +63,7 @@ pdata_t *program_init(const char *path)
         int len = strlen(buff);
         char *aux = malloc(len + 1);
         strcpy(aux, buff);
-        list_add(process->semaphore, (void *)aux);
+        vector_push_back(&(process->semaphore), &aux);
         i = i + len;
     }
 
@@ -70,10 +76,22 @@ pdata_t *program_init(const char *path)
         if (!strcmp(buffer, "\n") || !strcmp(buffer, "\r\n"))
             continue;
 
-        list_add(process->instruction, (void *)inst_read(buffer));
+        instruction_t *inst_aux =  inst_read(buffer);
+        vector_push_back(&(process->instruction), inst_aux);
+        free(inst_aux);
     }
+
+    process->pc = 0;
 
     // TODO: Get pid(process id)
 
     return process;
+}
+
+void program_destroy(pdata_t *program){
+    for(int i = 0; i < program->semaphore.length; i++){
+        free(VEC_GET(program->semaphore, i, char*));
+    }
+    vector_destroy(&(program->semaphore));
+    vector_destroy(&(program->instruction));
 }

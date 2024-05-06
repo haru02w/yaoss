@@ -5,3 +5,4 @@ result
 # make build
 build
 .vscode
+test
