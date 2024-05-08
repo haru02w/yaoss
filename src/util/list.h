@@ -1,6 +1,6 @@
 #pragma once
-#include <stddef.h>
 #include "byte.h"
+#include <stddef.h>
 
 struct list_node {
     byte *data;
@@ -20,3 +20,4 @@ void list_add(struct list *list, void *data);
 void list_remove(struct list *list, void *data);
 struct list_node *list_search(struct list *list, void *data);
 void list_destroy(struct list *list);
+struct list_node *list_node_create(void *data);

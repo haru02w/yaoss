@@ -1,5 +1,8 @@
 #pragma once
 #include "../util/vector.h"
+#define QT 5000
+
+typedef enum { NEW, READY, BLOCKED, DEAD, RUNNING } status_t;
 
 typedef struct process_data {
     char nome[20];
@@ -7,6 +10,9 @@ typedef struct process_data {
     int pc;
     int seg;
     int priority;
+    int quantun_time;
+    int remainig_time;
+    status_t status;
     int seg_size;
     struct vector semaphore;
     struct vector instruction;

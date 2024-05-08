@@ -1,4 +1,5 @@
 #include "process.h"
+#include "../core/kernel.h"
 #include "../util/vector.h"
 #include "instruction.h"
 #include <stdio.h>
@@ -22,6 +23,7 @@ pdata_t *program_init(const char *path)
     }
 
     pdata_t *process = malloc(sizeof *process);
+    process->status = NEW;
     process->semaphore = vector_create(sizeof(char *));
     process->instruction = vector_create(sizeof(instruction_t));
 
@@ -67,6 +69,7 @@ pdata_t *program_init(const char *path)
         i = i + len;
     }
 
+    int rtime = 0;
     while (fgets(buffer, sizeof(buffer), fp)) {
         // caso a linha esteja vazia
         if (!strlen(buffer))
@@ -77,14 +80,18 @@ pdata_t *program_init(const char *path)
             continue;
 
         instruction_t *inst_aux = inst_read(buffer);
+        rtime = rtime + inst_aux->value;
         vector_push_back(&(process->instruction), inst_aux);
         free(inst_aux);
     }
 
+    process->remainig_time = rtime;
     process->pc = 0;
+    process->quantun_time = QT / process->priority;
 
-    // TODO: Get pid(process id)
+    process->pid = get_next_proc_id();
 
+    process->status = READY;
     return process;
 }
 

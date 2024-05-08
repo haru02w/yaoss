@@ -15,9 +15,11 @@ struct list *list_create(int (*comparator)(const void *, const void *))
 
 struct list_node *list_node_create(void *data)
 {
-    struct list_node *new_node = (struct list_node *) malloc(sizeof *new_node);
+    struct list_node *new_node = (struct list_node *)malloc(sizeof *new_node);
 
-    *new_node = (struct list_node) { .data = data, .next = NULL, .prev = NULL };
+    *new_node = (struct list_node) {
+        .data = (byte *)data, .next = NULL, .prev = NULL
+    };
 
     return new_node;
 }
