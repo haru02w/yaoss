@@ -40,6 +40,7 @@ struct segment_table {
 };
 
 void segment_table_init(struct segment_table *seg_table);
+void segment_table_remove(struct segment_table *seg_table, size_t seg_id);
 void segment_table_destroy(struct segment_table *seg_table);
 void mem_load_request(
     struct segment_table *seg_table, struct memory_request *request);

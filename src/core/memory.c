@@ -13,12 +13,26 @@ static inline void segment_table_add(
     vector_push_back(&seg_table->table, seg);
 }
 
+static struct segment *segment_table_search(
+    struct segment_table *seg_table, size_t seg_id)
+{
+    for (size_t i = 0; i < seg_table->table.length; i++) {
+        struct segment *cur_seg
+            = (struct segment *)vector_get(&seg_table->table, i);
+
+        if (cur_seg->id == seg_id) {
+            return cur_seg;
+        }
+    }
+
+    return NULL;
+}
+
 void segment_table_remove(struct segment_table *seg_table, size_t seg_id)
 {
     assert(seg_id < seg_table->table.length);
 
-    struct segment *seg_found
-        = (struct segment *)vector_get(&seg_table->table, seg_id);
+    struct segment *seg_found = segment_table_search(seg_table, seg_id);
 
     seg_table->remaining_memory += seg_found->segment_size;
 
@@ -49,7 +63,7 @@ struct segment segment_create(pdata_t *process)
 {
     struct segment new_segment;
 
-    new_segment.id = process->pid;
+    new_segment.id = process->seg;
     new_segment.page_table = vector_create(sizeof(struct page));
     new_segment.segment_size = process->seg_size * KILOBYTE;
 
@@ -93,8 +107,7 @@ void mem_load_request(
 {
     struct segment seg = segment_create(request->process);
 
-    seg_table->remaining_memory
-        = seg_table->remaining_memory - seg.segment_size;
+    seg_table->remaining_memory -= seg.segment_size;
 
     segment_fill(&seg, request->instruction_list);
     segment_table_add(seg_table, &seg);
