@@ -21,3 +21,5 @@ void list_remove(struct list *list, void *data);
 struct list_node *list_search(struct list *list, void *data);
 void list_destroy(struct list *list);
 struct list_node *list_node_create(void *data);
+void *dequeue(struct list *queue);
+void enqueue(struct list *queue, void *data);

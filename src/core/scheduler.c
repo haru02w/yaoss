@@ -1,4 +1,5 @@
 #include "scheduler.h"
+#include <stdio.h>
 
 int pid_comp(const void *a, const void *b)
 {
@@ -11,7 +12,7 @@ struct sched *scheduler_init()
 {
     struct sched *sched = malloc(sizeof(struct sched));
     sched->atual = NULL;
-    sched->ready_list = list_create(&pid_comp);
+    sched->ready_queue = list_create(&pid_comp);
     sched->blocked_list = list_create(&pid_comp);
 
     return sched;
@@ -19,28 +20,65 @@ struct sched *scheduler_init()
 
 void sched_add_process(struct sched *sched, pdata_t *pdata)
 {
-    struct list_node *node = sched->atual;
-    struct list_node *new_node = list_node_create(pdata);
+    if (sched->atual != NULL)
+        enqueue(sched->ready_queue, (void *)sched->atual);
 
-    if (node == NULL) {
-        node = new_node;
-        if (sched->ready_list->head == NULL) {
-            sched->ready_list->head = sched->ready_list->tail = node;
-            node->next = node->prev = node;
-        } else {
-            node->next = sched->ready_list->head;
-            node->prev = sched->ready_list->tail;
-            sched->ready_list->head = node;
-        }
-    } else {
-        // TODO:process interrupt de node
-        new_node->prev = node->prev;
-        new_node->next = node;
-        node->prev = new_node;
-        if (!pid_comp((const void *)(sched->ready_list->head->data),
-                (const void *)(node->data))) {
-            sched->ready_list->tail = new_node;
-        }
+    sched->atual = pdata;
+}
+
+struct list_node *get_process(struct list *list, int pid)
+{
+    struct list_node *node = list->head;
+    while (((pdata_t *)(node->data))->pid != pid && list->tail->data == node->data) {
+        node = node->next;
     }
-    sched->ready_list->size = sched->ready_list->size + 1;
+
+    if (list->tail->data == node->data && ((pdata_t *)(node->data))->pid != pid)
+        return NULL;
+    else
+        return node;
+}
+
+void sched_unlock_process(struct sched *sched, int pid)
+{
+    struct list_node *node = get_process(sched->blocked_list, pid);
+    if (node == NULL) {
+        printf("PID não reconhecido\n");
+        return;
+    }
+    if (sched->blocked_list->size == 1) {
+        sched->blocked_list->tail = sched->blocked_list->head = NULL;
+        sched->blocked_list->size = 0;
+    } else {
+        if (sched->blocked_list->tail->data == node->data) {
+            sched->blocked_list->tail = node->prev;
+        } else if (sched->blocked_list->head->data == node->data) {
+            sched->blocked_list->head = node->next;
+        }
+        node->prev->next = NULL;
+        node->next->prev = NULL;
+        node->prev = node->next = NULL;
+        sched->blocked_list->size--;
+    }
+
+    ((pdata_t *)node->data)->status = READY;
+    enqueue(sched->ready_queue, node->data);
+    free(node);
+}
+
+void sched_process_block(struct sched *sched)
+{
+    list_add(sched->blocked_list, (void *)sched->atual);
+    sched->atual->status = BLOCKED;
+    sched->atual = NULL;
+}
+
+void sched_next_process(struct sched *sched)
+{
+    if (sched->ready_queue->size == 0)
+        return;
+    if (sched->atual != NULL) {
+        enqueue(sched->ready_queue, (void *)sched->atual);
+    }
+    sched->atual = (pdata_t *)dequeue(sched->ready_queue);
 }

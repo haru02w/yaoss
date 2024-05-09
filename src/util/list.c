@@ -6,9 +6,7 @@ struct list *list_create(int (*comparator)(const void *, const void *))
 {
     struct list *new_list = (struct list *)malloc(sizeof *new_list);
 
-    *new_list = (struct list) {
-        .comparator = comparator, .head = NULL, .tail = NULL, .size = 0
-    };
+    *new_list = (struct list) { .comparator = comparator, .head = NULL, .tail = NULL, .size = 0 };
 
     return new_list;
 }
@@ -17,9 +15,7 @@ struct list_node *list_node_create(void *data)
 {
     struct list_node *new_node = (struct list_node *)malloc(sizeof *new_node);
 
-    *new_node = (struct list_node) {
-        .data = (byte *)data, .next = NULL, .prev = NULL
-    };
+    *new_node = (struct list_node) { .data = (byte *)data, .next = NULL, .prev = NULL };
 
     return new_node;
 }
@@ -96,4 +92,30 @@ void list_destroy(struct list *list)
     }
 
     free(list);
+}
+
+void *dequeue(struct list *queue)
+{
+    struct list_node *node = queue->head;
+    if (node == NULL)
+        return NULL;
+    queue->head = node->next;
+    queue->head->prev = NULL;
+    queue->size--;
+    return node->data;
+}
+
+void enqueue(struct list *queue, void *data)
+{
+    struct list_node *node = list_node_create(data);
+    if (queue->size == 0) {
+        queue->head = queue->tail = node;
+        queue->size = 1;
+        return;
+    }
+    queue->tail->next = node;
+    node->prev = queue->tail;
+    queue->tail = node;
+    node->next = NULL;
+    queue->size++;
 }

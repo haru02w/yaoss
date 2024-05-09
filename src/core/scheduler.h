@@ -3,7 +3,7 @@
 #include "../util/list.h"
 
 struct sched {
-    struct list_node *atual;
-    struct list *ready_list;
+    pdata_t *atual;
+    struct list *ready_queue;
     struct list *blocked_list;
 };
