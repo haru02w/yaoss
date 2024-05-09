@@ -16,7 +16,7 @@ set(CMAKE_BUILD_TYPE Debug)
 # set flags to compiler
 # set(CMAKE_CXX_FLAGS ...)
 set(CMAKE_C_FLAGS
-  "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -Wuninitialized")
+  "${CMAKE_C_FLAGS} -Wall -Wextra -Wuninitialized")
 
 # Ensure the build and source directory exists
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -25,7 +25,11 @@ file(MAKE_DIRECTORY "src")
 file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.c")
 # file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
 
+find_package(Curses REQUIRED)
+include_directories(${CURSES_INCLUDE_DIR})
+
 add_executable(main ${SOURCES})
+target_link_libraries(main ${CURSES_LIBRARIES})
 
 option(TESTING "Enable tests." OFF)
 
