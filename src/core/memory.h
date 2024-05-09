@@ -13,7 +13,7 @@
 
 #define MAX_MEMORY_SIZE (1 * GIGABYTE)
 #define PAGE_SIZE (8 * KILOBYTE)
-#define INSTRUCTION_SIZE (0.5 * KILOBYTE)
+#define INSTRUCTION_SIZE (2 * KILOBYTE)
 #define MAX_PAGE_INSTRUCTION (PAGE_SIZE / INSTRUCTION_SIZE)
 
 struct memory_request {
@@ -30,8 +30,11 @@ struct page {
 
 struct segment {
     size_t id;
-    struct vector page_table;
     size_t segment_size;
+    struct vector page_table;
+    struct page **resident_set;
+    size_t resident_set_size;
+    size_t swap_page_id;
 };
 
 struct segment_table {
@@ -42,5 +45,9 @@ struct segment_table {
 void segment_table_init(struct segment_table *seg_table);
 void segment_table_remove(struct segment_table *seg_table, size_t seg_id);
 void segment_table_destroy(struct segment_table *seg_table);
+
+opcode_t segment_fetch_instruction(
+    struct segment_table *table, size_t seg_id, size_t pc);
+
 void mem_load_request(
     struct segment_table *seg_table, struct memory_request *request);
