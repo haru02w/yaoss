@@ -29,7 +29,8 @@ void sched_add_process(struct sched *sched, pdata_t *pdata)
 struct list_node *get_process(struct list *list, int pid)
 {
     struct list_node *node = list->head;
-    while (((pdata_t *)(node->data))->pid != pid && list->tail->data == node->data) {
+    while (((pdata_t *)(node->data))->pid != pid
+        && list->tail->data == node->data) {
         node = node->next;
     }
 
