@@ -60,26 +60,28 @@ void segment_table_remove(struct segment_table *seg_table, size_t seg_id)
 
     struct segment *seg_found = segment_table_search(seg_table, seg_id);
 
-    seg_table->remaining_memory += seg_found->segment_size;
+    for (size_t i = 0; i < seg_found->page_table.length; i++) {
+        struct page *cur_page
+            = (struct page *)vector_get(&seg_found->page_table, i);
 
-    // vector_remove(&seg_table->table, seg_id);
+        if (cur_page->code != NULL) {
+            free(cur_page->code);
+        }
+    }
+
+    vector_destroy(&seg_found->page_table);
+    free(seg_found->resident_set);
+
+    // TODO : vector_remove(&seg_table->table, seg_id);
+
+    seg_table->remaining_memory += seg_found->segment_size;
 }
 
 void segment_table_destroy(struct segment_table *seg_table)
 {
     for (size_t i = 0; i < seg_table->table.length; i++) {
-        struct segment *cur_seg
-            = (struct segment *)vector_get(&seg_table->table, i);
-
-        for (size_t j = 0; j < cur_seg->page_table.length; j++) {
-            struct page *cur_page
-                = (struct page *)vector_get(&cur_seg->page_table, j);
-
-            if (cur_page->code != NULL)
-                free(cur_page->code);
-        }
-
-        vector_destroy(&cur_seg->page_table);
+        struct segment *cur_segment = vector_get(&seg_table->table, i);
+        segment_table_remove(seg_table, cur_segment->id);
     }
 
     vector_destroy(&seg_table->table);
@@ -89,7 +91,7 @@ struct segment segment_create(pdata_t *process)
 {
     struct segment new_segment;
 
-    new_segment.id = process->seg;
+    new_segment.id = process->seg_id;
     new_segment.page_table = vector_create(sizeof(struct page));
     new_segment.resident_set = NULL;
     new_segment.resident_set_size = 0;
