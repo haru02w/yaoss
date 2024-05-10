@@ -6,45 +6,37 @@
 #include <stdlib.h>
 #include <string.h>
 
-int comp_sem(const void *a, const void *b)
-{
-    char *sema = (char *)a;
-    char *semb = (char *)b;
-    return strcmp(sema, semb);
-}
-
-int comp_inst(const void *a, const void *b) { return 0; }
-
-pdata_t *program_init(const char *path)
+void program_init(const char *path)
 {
     if (!path) {
         printf("erro, sem nome de arquivo\n");
-        return NULL;
+        return;
     }
 
     pdata_t *process = malloc(sizeof *process);
     process->status = NEW;
     process->semaphore = vector_create(sizeof(char *));
-    process->instruction = vector_create(sizeof(instruction_t));
+    struct vector code = vector_create(sizeof(instruction_t));
 
     FILE *fp = fopen(path, "r");
+
     if (!fp) {
         printf("arquivo não encontrado\n");
-        vector_destroy(&(process->semaphore));
-        vector_destroy(&(process->instruction));
+        vector_destroy(&process->semaphore);
+        vector_destroy(&code);
         free(process);
-        return NULL;
+        return;
     }
 
     char buffer[50];
 
     // get nome
     fgets(buffer, sizeof buffer, fp);
-    strcpy(process->nome, buffer);
+    strcpy(process->name, buffer);
 
     // get segmento
     fgets(buffer, sizeof buffer, fp);
-    process->seg = atoi(buffer);
+    process->seg_id = atoi(buffer);
 
     // get prioridade
     fgets(buffer, sizeof buffer, fp);
@@ -65,7 +57,7 @@ pdata_t *program_init(const char *path)
         int len = strlen(buff);
         char *aux = malloc(len + 1);
         strcpy(aux, buff);
-        vector_push_back(&(process->semaphore), &aux);
+        vector_push_back(&process->semaphore, &aux);
         i = i + len;
     }
 
@@ -81,18 +73,22 @@ pdata_t *program_init(const char *path)
 
         instruction_t *inst_aux = inst_read(buffer);
         rtime = rtime + inst_aux->value;
-        vector_push_back(&(process->instruction), inst_aux);
+        vector_push_back(&code, inst_aux);
         free(inst_aux);
     }
 
     process->remainig_time = rtime;
     process->pc = 0;
-    process->quantun_time = QT / process->priority;
+    process->quantum_time = QT / process->priority;
 
-    process->pid = get_next_proc_id();
+    process->pid = get_next_pid();
 
-    process->status = READY;
-    return process;
+    struct memory_request request = { process, &code };
+
+    syscall(MEM_LOAD_REQ, &request);
+
+    free(process);
+    vector_destroy(&code);
 }
 
 void program_destroy(pdata_t *program)
@@ -101,5 +97,4 @@ void program_destroy(pdata_t *program)
         free(VEC_GET(program->semaphore, i, char *));
     }
     vector_destroy(&(program->semaphore));
-    vector_destroy(&(program->instruction));
 }
