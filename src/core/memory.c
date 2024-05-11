@@ -128,6 +128,7 @@ static void segment_fill(struct segment *seg, struct vector *instruction_list)
 
         new_page.code_length = instructions_for_page;
         new_page.used_bit = 0;
+        new_page.on_disk = 1;
 
         for (size_t j = 0; j < instructions_for_page; j++) {
             instruction_t *instruction = (instruction_t *)vector_get(
@@ -141,6 +142,7 @@ static void segment_fill(struct segment *seg, struct vector *instruction_list)
         if (i < seg->resident_set_size) {
             seg->resident_set[i]
                 = (struct page *)vector_get(&seg->page_table, i);
+            seg->resident_set[i]->on_disk = 0;
         }
     }
 }
@@ -155,6 +157,8 @@ static void mem_page_swap(struct segment *seg, struct page *new_page)
         cur_page = seg->resident_set[seg->swap_page_id];
     }
 
+    cur_page->on_disk = 1;
+    new_page->on_disk = 0;
     seg->resident_set[seg->swap_page_id] = new_page;
     seg->swap_page_id = (seg->swap_page_id + 1) % seg->resident_set_size;
 }
@@ -163,7 +167,7 @@ opcode_t segment_fetch_instruction(
     struct segment_table *table, size_t seg_id, size_t pc)
 {
     struct segment *found_segment = segment_table_search(table, seg_id);
-    size_t page_id_nedeed = floor(pc / MAX_PAGE_INSTRUCTION);
+    size_t page_id_nedeed = floor((double)pc / MAX_PAGE_INSTRUCTION);
 
     struct page *page_found
         = segment_resident_search(found_segment, page_id_nedeed);
@@ -172,6 +176,8 @@ opcode_t segment_fetch_instruction(
         page_found = segment_page_search(found_segment, page_id_nedeed);
         mem_page_swap(found_segment, page_found);
     }
+
+    page_found->used_bit = 1;
 
     instruction_t found_instruction
         = page_found->code[pc % MAX_PAGE_INSTRUCTION];

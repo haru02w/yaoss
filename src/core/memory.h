@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -25,7 +26,8 @@ struct page {
     size_t id;
     instruction_t *code;
     size_t code_length;
-    int used_bit;
+    bool used_bit;
+    bool on_disk;
 };
 
 struct segment {
