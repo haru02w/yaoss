@@ -48,7 +48,7 @@ void segment_table_init(struct segment_table *seg_table);
 void segment_table_remove(struct segment_table *seg_table, size_t seg_id);
 void segment_table_destroy(struct segment_table *seg_table);
 
-instruction_t segment_fetch_instruction(
+instruction_t *segment_fetch_instruction(
     struct segment_table *table, size_t seg_id, size_t pc);
 
 void mem_load_request(

@@ -163,7 +163,7 @@ static void mem_page_swap(struct segment *seg, struct page *new_page)
     seg->swap_page_id = (seg->swap_page_id + 1) % seg->resident_set_size;
 }
 
-instruction_t segment_fetch_instruction(
+instruction_t *segment_fetch_instruction(
     struct segment_table *table, size_t seg_id, size_t pc)
 {
     struct segment *found_segment = segment_table_search(table, seg_id);
@@ -179,7 +179,7 @@ instruction_t segment_fetch_instruction(
 
     page_found->used_bit = 1;
 
-    return page_found->code[pc % MAX_PAGE_INSTRUCTION];
+    return &page_found->code[pc % MAX_PAGE_INSTRUCTION];
 }
 
 void mem_load_request(
