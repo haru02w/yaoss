@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(template LANGUAGES C)
+project(main LANGUAGES C)
 # project(template LANGUAGES CXX)
 
 # Set the C/C++ standard required
@@ -26,10 +26,11 @@ file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.c")
 # file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
 
 find_package(Curses REQUIRED)
-include_directories(${CURSES_INCLUDE_DIR})
+find_library(MENU_LIBRARY menu)
+include_directories(${CURSES_INCLUDE_DIRS})
 
-add_executable(main ${SOURCES})
-target_link_libraries(main ${CURSES_LIBRARIES})
+add_executable(${PROJECT_NAME} ${SOURCES})
+target_link_libraries(${PROJECT_NAME} ${MENU_LIBRARY} ${CURSES_LIBRARIES})
 
 option(TESTING "Enable tests." OFF)
 
@@ -37,5 +38,3 @@ if(TESTING)
   enable_testing()
   add_subdirectory(test)
 endif()
-
-install(TARGETS main DESTINATION bin)
