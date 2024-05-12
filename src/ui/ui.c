@@ -1,20 +1,22 @@
 #include "ui.h"
+#include "main/footer.h"
+#include "main/header.h"
+#include "main/process.h"
 #include <curses.h>
+#include <math.h>
 #include <menu.h>
 #include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
 
-void footer(WINDOW *win);
-void header(WINDOW *win);
-void process_list(WINDOW *win);
+void process_menu_handle(WINDOW *win, MENU *menu, int keycode);
 
 bool paused = true;
 uint64_t time_elapsed = 0;
 
+#define UT_CHANGE 0.00001
 void start_ui()
 {
+    double ut = 0.0001;
+
     /* Initialization */
     initscr(); // Start curses mode
     cbreak(); // disable line buffering except CTRL+C
@@ -26,39 +28,46 @@ void start_ui()
     int row = getmaxy(stdscr);
     int col = getmaxx(stdscr);
 
-    WINDOW *win_header = derwin(stdscr, 1, col, 0, 0);
-    WINDOW *win_process_list = derwin(stdscr, row - 2, col / 2, 1, 0);
+    struct ui_header ui_header = ui_create_header(stdscr);
+    struct ui_process ui_process = ui_create_process(stdscr);
+    struct ui_footer ui_footer = ui_create_footer(stdscr);
+
+    // TODO:
     WINDOW *win_process_details
         = derwin(stdscr, row - 2, col / 2, 1, (col / 2));
     box(win_process_details, 0, 0);
-    WINDOW *win_footer = derwin(stdscr, 1, col, row - 1, 0);
 
-    footer(win_footer);
-    process_list(win_process_list);
-    wrefresh(win_process_list);
+    ui_render_footer(&ui_footer);
 
-    double ut = 0.0001;
-    while (true) {
-        header(win_header);
+    for (;;) {
+        ui_render_header(&ui_header, ut, 4324242, time_elapsed);
+        ui_render_process(&ui_process); // TODO: inside loop
         switch (getch()) {
-        case KEY_UP:
-            // TODO: menu_driver
-            break;
         case KEY_DOWN:
-            // TODO: menu_driver
+            // TODO:
+            break;
+        case KEY_UP:
+            // TODO:
+            break;
+        case '+':
+            if (ut + UT_CHANGE > INFINITY)
+                break;
+            ut += 0.00001;
+            break;
+        case '-':
+            if (ut - UT_CHANGE < 0)
+                break;
+            ut -= 0.00001;
             break;
         case ' ':
             paused = !paused;
             break;
         case 'c':
-            werase(win_footer);
-            mvwprintw(win_footer, 0, 0, " Path to synthetic program: ");
-            char path[4096];
             echo();
-            wgetstr(win_footer, path);
+            char *path = ui_ask_path_footer(&ui_footer);
             noecho();
             // TODO: create_process(path)
-            footer(win_footer);
+            ui_render_footer(&ui_footer);
             break;
         case 'q':
             goto end;
@@ -68,70 +77,8 @@ void start_ui()
         time_elapsed += !paused;
     };
 end:
+    ui_destroy_header(&ui_header);
+    ui_destroy_process(&ui_process);
+    ui_destroy_footer(&ui_footer);
     endwin();
-}
-
-void footer(WINDOW *win)
-{
-    werase(win);
-    wprintw(win,
-        " Q: stop simulation\tC: create process\tSPACE: pause simulation\t"
-        "ENTER: show details ");
-    wrefresh(win);
-}
-
-void header(WINDOW *win)
-{
-    // TODO: get memory usage
-    // SYS_STATS
-    int mem_usage = 999999999;
-    int prev_usage = 0;
-
-    // only redraw if needed
-    if (mem_usage != prev_usage) {
-        werase(win);
-        mvwprintw(win, 0, 0, " memory usage: %d", mem_usage);
-        prev_usage = mem_usage;
-    }
-
-    // CLOCK
-    char s[128];
-    int col = getmaxx(win);
-    sprintf(s, "Time elapsed: %lukUT", time_elapsed / 1000);
-    wmove(win, 0, (col - strlen(s)));
-    wclrtoeol(win);
-    mvwprintw(win, 0, (col - strlen(s)), "%s", s);
-    wrefresh(win);
-}
-
-void process_list(WINDOW *win)
-{
-    int rows, cols;
-    getmaxyx(win, rows, cols);
-    box(win, 0, 0);
-    mvwprintw(win, 0, 1, "%3.3s %12.12s %3.3s %9.9s %3.3s %9.9s", "PID", "NAME",
-        "PRI", "PC", "SID", "TIME");
-
-    // Creating strings
-    char(*choices)[512];
-    int qtd_rows = 3;
-    choices = malloc(qtd_rows * sizeof(*choices));
-
-    // TODO: get data not hardcoded
-    sprintf(choices[0], "%3.3d %12.12s  %2.2d %4.4d/%-4.4d %3.3d %6.6dkUT", 0,
-        "nome do programa", 20, 2, 5, 0, 234);
-    sprintf(choices[1], "%3.3d %12.12s  %2.2d %4.4d/%-4.4d %3.3d %6.6dkUT", 1,
-        "nome do programa2", 20, 3, 6, 1, 9);
-
-    // Creating items
-    ITEM **items = (ITEM **)calloc(qtd_rows + 1, sizeof(ITEM *));
-    for (int i = 0; i < qtd_rows; ++i)
-        items[i] = new_item(choices[i], NULL);
-
-    MENU *menu = new_menu(items);
-    set_menu_mark(menu, "");
-    set_menu_win(menu, win);
-    set_menu_sub(menu, derwin(win, rows - 2, cols - 2, 1, 1));
-    post_menu(menu);
-    wrefresh(win);
 }
