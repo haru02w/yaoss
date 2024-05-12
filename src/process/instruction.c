@@ -31,6 +31,7 @@ instruction_t *inst_read(char *string)
             inst->sem[j - i] = string[j];
         }
         inst->sem[j - i] = '\0';
+        inst->value = 200;
         break;
     }
     case 1: { // EXEC
@@ -55,6 +56,7 @@ instruction_t *inst_read(char *string)
             inst->sem[j - i] = string[j];
         }
         inst->sem[j - i] = '\0';
+        inst->value = 200;
         break;
     }
     case 7: { // PRINT
