@@ -1,6 +1,7 @@
 #include "memory.h"
 #include <assert.h>
 #include <math.h>
+#include <stdlib.h>
 
 void segment_table_init(struct segment_table *seg_table)
 {
@@ -31,8 +32,8 @@ static struct segment *segment_table_search(
 
 static struct page *segment_page_search(struct segment *seg, size_t page_id)
 {
-    for (size_t i = 0; i < seg->resident_set_size; i++) {
-        struct page *cur_page = (struct page *)vector_get(&seg->page_table, i);
+    for (size_t i = 0; i < seg->page_table_size; i++) {
+        struct page *cur_page = seg->page_table[i];
 
         if (cur_page->id == page_id) {
             return cur_page;
@@ -61,16 +62,17 @@ void segment_table_remove(struct segment_table *seg_table, size_t seg_id)
 
     struct segment *seg_found = segment_table_search(seg_table, seg_id);
 
-    for (size_t i = 0; i < seg_found->page_table.length; i++) {
-        struct page *cur_page
-            = (struct page *)vector_get(&seg_found->page_table, i);
+    for (size_t i = 0; i < seg_found->page_table_size; i++) {
+        struct page *cur_page = seg_found->page_table[i];
 
         if (cur_page->code != NULL) {
             free(cur_page->code);
         }
+
+        free(cur_page);
     }
 
-    vector_destroy(&seg_found->page_table);
+    free(seg_found->page_table);
     free(seg_found->resident_set);
 
     // TODO : vector_remove(&seg_table->table, seg_id);
@@ -93,9 +95,10 @@ struct segment segment_create(pdata_t *process)
     struct segment new_segment;
 
     new_segment.id = process->seg_id;
-    new_segment.page_table = vector_create(sizeof(struct page));
+    new_segment.page_table = NULL;
     new_segment.resident_set = NULL;
     new_segment.resident_set_size = 0;
+    new_segment.page_table_size = 0;
     new_segment.segment_size = process->seg_size * KILOBYTE;
     new_segment.swap_page_id = 0;
 
@@ -110,8 +113,10 @@ static void segment_fill(struct segment *seg, struct vector *instruction_list)
     size_t pages_needed
         = ceil((double)total_instructions / MAX_PAGE_INSTRUCTION);
 
+    seg->page_table_size = pages_needed;
     seg->resident_set_size = max_page;
     seg->resident_set = malloc(sizeof(struct page *) * seg->resident_set_size);
+    seg->page_table = malloc(sizeof(struct page *) * seg->page_table_size);
 
     for (size_t i = 0; i < pages_needed; i++) {
         size_t instructions_for_page
@@ -119,30 +124,29 @@ static void segment_fill(struct segment *seg, struct vector *instruction_list)
             ? MAX_PAGE_INSTRUCTION
             : remaining_instructions;
 
-        struct page new_page;
-        new_page.id = i;
+        struct page *new_page = malloc(sizeof *new_page);
+        new_page->id = i;
 
         if (instructions_for_page > 0) {
-            new_page.code
+            new_page->code
                 = malloc(instructions_for_page * sizeof(instruction_t));
         }
 
-        new_page.code_length = instructions_for_page;
-        new_page.used_bit = 0;
-        new_page.on_disk = 1;
+        new_page->code_length = instructions_for_page;
+        new_page->used_bit = 0;
+        new_page->on_disk = 1;
 
         for (size_t j = 0; j < instructions_for_page; j++) {
             instruction_t *instruction = (instruction_t *)vector_get(
                 instruction_list, total_instructions - remaining_instructions);
-            new_page.code[j] = *instruction;
+            new_page->code[j] = *instruction;
             remaining_instructions--;
         }
 
-        vector_push_back(&seg->page_table, &new_page);
+        seg->page_table[i] = new_page;
 
         if (i < seg->resident_set_size) {
-            seg->resident_set[i]
-                = (struct page *)vector_get(&seg->page_table, i);
+            seg->resident_set[i] = new_page;
             seg->resident_set[i]->on_disk = 0;
         }
     }

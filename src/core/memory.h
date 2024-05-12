@@ -1,11 +1,9 @@
 #pragma once
 
-#include <stdbool.h>
-#include <stdio.h>
-
 #include "../process/instruction.h"
 #include "../process/process.h"
 #include "../util/vector.h"
+#include <stdbool.h>
 
 #define KILOBYTE (1024)
 #define MEGABYTE (1024 * KILOBYTE)
@@ -32,8 +30,9 @@ struct page {
 struct segment {
     size_t id;
     size_t segment_size;
-    struct vector page_table;
+    struct page **page_table;
     struct page **resident_set;
+    size_t page_table_size;
     size_t resident_set_size;
     size_t swap_page_id;
 };
