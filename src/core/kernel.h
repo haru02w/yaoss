@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../process/semaphore.h"
 #include "memory.h"
 #include "scheduler.h"
 
@@ -19,6 +20,8 @@ struct kernel {
     struct vector process_table;
     struct segment_table seg_table;
     struct sched scheduler;
+    struct vector semaphore_table;
+    unsigned cur_process_time;
 };
 
 void kernel_init();

@@ -4,6 +4,7 @@
 #include "../util/vector.h"
 #include "process.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 struct vector semaphore_table_init()

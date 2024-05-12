@@ -93,10 +93,6 @@ void program_init(const char *path)
     struct memory_request request = { process, &code };
 
     syscall(MEM_LOAD_REQ, &request);
-
-    vector_destroy(&process->semaphore);
-    vector_destroy(&code);
-    free(process);
 }
 
 /// @brief Function to free the memory allocated for the program

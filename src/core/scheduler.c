@@ -1,5 +1,6 @@
 #include "scheduler.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 /// @brief generic comparator for process id
 /// @param a process void pointer a
@@ -16,14 +17,11 @@ int pid_comp(const void *a, const void *b)
 
 /// @brief function to generate a new scheduler struct
 /// @return scheduler pointer for the scheduler created
-struct sched *scheduler_init()
+void scheduler_init(struct sched *sched)
 {
-    struct sched *sched = malloc(sizeof(struct sched));
     sched->atual = NULL;
     sched->ready_queue = list_create(&pid_comp);
     sched->blocked_list = list_create(&pid_comp);
-
-    return sched;
 }
 
 /// @brief function that adds a new process to the scheduler

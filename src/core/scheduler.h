@@ -13,8 +13,7 @@ struct sched {
 };
 
 /// @brief function to generate a new scheduler struct
-/// @return scheduler pointer for the scheduler created
-struct sched *scheduler_init();
+void scheduler_init(struct sched *sched);
 
 /// @brief function that adds a new process to the scheduler
 /// @param sched scheduler pointer
