@@ -1,4 +1,5 @@
 #include "memory.h"
+#include <assert.h>
 #include <math.h>
 
 void segment_table_init(struct segment_table *seg_table)
