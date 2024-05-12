@@ -6,10 +6,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+/// @brief Function that reads a program file in the directory
+/// @param path Directory to the program file
 void program_init(const char *path)
 {
+    // If path is NULL, return
     if (!path) {
-        printf("erro, sem nome de arquivo\n");
+        printf("error, no file name\n");
         return;
     }
 
@@ -20,36 +23,39 @@ void program_init(const char *path)
 
     FILE *fp = fopen(path, "r");
 
+    // If file not found, print error message, free allocated memory, and return
     if (!fp) {
-        printf("arquivo não encontrado\n");
+        printf("file not found\n");
         vector_destroy(&process->semaphore);
         vector_destroy(&code);
         free(process);
         return;
     }
 
+    // From here, the program file is read and put into the process data struct
     char buffer[50];
 
-    // get nome
+    // Get name
     fgets(buffer, sizeof buffer, fp);
     strcpy(process->name, buffer);
 
-    // get segmento
+    // Get segment id
     fgets(buffer, sizeof buffer, fp);
     process->seg_id = atoi(buffer);
 
-    // get prioridade
+    // Get priority
     fgets(buffer, sizeof buffer, fp);
     process->priority = atoi(buffer);
 
-    // get tamanho do segmento
+    // Get segment size
     fgets(buffer, sizeof buffer, fp);
     process->seg_size = atoi(buffer);
 
-    // get lista de semaforos
+    // Get semaphore list
     fgets(buffer, sizeof buffer, fp);
-    // FIXME: O ultimo semaforo armazena um \n
 
+    // FIXME: Does the last semaphore store a \n?
+    // Read semaphore list
     for (int i = 0; buffer[i] != '\0'; i++) {
         char buff[50];
         sscanf(&(buffer[i]), "%[^ ]s", buff);
@@ -61,13 +67,14 @@ void program_init(const char *path)
         i = i + len;
     }
 
+    // Read the process list
     int rtime = 0;
     while (fgets(buffer, sizeof(buffer), fp)) {
-        // caso a linha esteja vazia
+        // If the line is empty
         if (!strlen(buffer))
             continue;
 
-        // caso a linha estaja em branco
+        // If the line is blank
         if (!strcmp(buffer, "\n") || !strcmp(buffer, "\r\n"))
             continue;
 
@@ -77,7 +84,7 @@ void program_init(const char *path)
         free(inst_aux);
     }
 
-    process->remainig_time = rtime;
+    process->remaining_time = rtime;
     process->pc = 0;
     process->quantum_time = QT / process->priority;
 
@@ -87,14 +94,19 @@ void program_init(const char *path)
 
     syscall(MEM_LOAD_REQ, &request);
 
-    free(process);
+    vector_destroy(&process->semaphore);
     vector_destroy(&code);
+    free(process);
 }
 
+/// @brief Function to free the memory allocated for the program
+/// @param program Pointer to the program to be destroyed
 void program_destroy(pdata_t *program)
 {
+    // Free each char pointer in the vector of semaphores
     for (int i = 0; i < program->semaphore.length; i++) {
         free(VEC_GET(program->semaphore, i, char *));
     }
     vector_destroy(&(program->semaphore));
+    free(program);
 }
