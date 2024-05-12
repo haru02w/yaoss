@@ -3,5 +3,5 @@
 
 extern bool paused;
 
-void start_ui();
+void run_curses();
 void sleep(double seconds); // WARN: should be in "utils/"

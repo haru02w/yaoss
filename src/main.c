@@ -1,8 +1,10 @@
 #include "ui/ui.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 int main(void)
 {
-    start_ui();
+    run_curses();
+    printf("bye :)\n");
     return EXIT_SUCCESS;
 }

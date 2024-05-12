@@ -15,14 +15,13 @@ struct ui_process ui_create_process(WINDOW *parent_win)
         .items = NULL,
     };
     box(tmp.win, 0, 0);
-    mvwprintw(tmp.win, 0, 1, header_format, "PID", "NAME", "PRI", "PC", "SID",
+    mvwprintw(tmp.win, 1, 1, header_format, "PID", "NAME", "PRI", "PC", "SID",
         "TIME");
     tmp.menu = new_menu(NULL);
     set_menu_mark(tmp.menu, "");
     set_menu_win(tmp.menu, tmp.win);
     set_menu_sub(tmp.menu,
-        derwin(tmp.win, getmaxy(tmp.win) - 2, getmaxx(tmp.win) - 2, 1, 1));
-    post_menu(tmp.menu);
+        derwin(tmp.win, getmaxy(tmp.win) - 3, getmaxx(tmp.win) - 2, 2, 1));
     post_menu(tmp.menu);
     wrefresh(tmp.win);
     return tmp;
