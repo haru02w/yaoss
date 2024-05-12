@@ -17,10 +17,9 @@ bool paused = true;
 
 void run_curses()
 {
-    ui_create_stdscr();
-
     double ut = 0.0001;
 
+    ui_create_stdscr();
     struct ui_header ui_header = ui_create_header(stdscr);
     struct ui_process ui_process = ui_create_process(stdscr);
     struct ui_footer ui_footer = ui_create_footer(stdscr);
@@ -29,7 +28,7 @@ void run_curses()
     ui_render_footer(&ui_footer);
 
     for (;;) {
-        ui_render_header(&ui_header, ut, 4324242, time_elapsed);
+        ui_render_header(&ui_header, ut, time_elapsed);
         ui_render_process(&ui_process);
         switch (getch()) {
         case KEY_DOWN:
@@ -53,9 +52,9 @@ void run_curses()
             break;
         case 'c':
             echo();
-            char *path = ui_ask_path_footer(&ui_footer);
-            noecho();
             // TODO: create_process(path)
+            (void)ui_ask_path_footer(&ui_footer);
+            noecho();
             ui_render_footer(&ui_footer);
             break;
         case 'q':

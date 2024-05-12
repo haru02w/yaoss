@@ -1,4 +1,5 @@
 #include "header.h"
+#include "../../core2ui.h"
 #include "curses.h"
 #include <stdint.h>
 #include <string.h>
@@ -9,18 +10,19 @@ struct ui_header ui_create_header(WINDOW *parent_win)
     };
 }
 
-void ui_render_header(struct ui_header *main_header, double ut,
-    uint64_t mem_usage, uint64_t time_elapsed)
+void ui_render_header(
+    struct ui_header *main_header, double ut, uint64_t time_elapsed)
 {
-    // TODO: get memory usage
-    // SYS_STATS
-    uint64_t prev_mem_usage = 0;
+    static struct simulation_info prev_info = { 0 };
+
+    struct simulation_info info = get_simulation_info();
 
     // only redraw if needed
-    if (mem_usage != prev_mem_usage) {
+    if (info.memory_usage_mb != prev_info.memory_usage_mb) {
         werase(main_header->win);
-        mvwprintw(main_header->win, 0, 0, " memory usage: %lu", mem_usage);
-        prev_mem_usage = mem_usage;
+        mvwprintw(main_header->win, 0, 0, " memory usage: %lu/1024MB",
+            info.memory_usage_mb);
+        prev_info.memory_usage_mb = info.memory_usage_mb;
     }
 
     // CLOCK

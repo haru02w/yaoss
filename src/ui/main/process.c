@@ -1,6 +1,9 @@
 #include "process.h"
+#include "../../core2ui.h"
+#include "../../util/vector.h"
 #include "curses.h"
 #include "menu.h"
+#include <assert.h>
 #include <stdlib.h>
 
 static char *header_format = "%3.3s %12.12s %3.3s %9.9s %3.3s %9.9s";
@@ -13,6 +16,7 @@ struct ui_process ui_create_process(WINDOW *parent_win)
         .win = derwin(
             stdscr, getmaxy(parent_win) - 2, getmaxx(parent_win) / 2, 1, 0),
         .items = NULL,
+        .item_str = NULL,
     };
     box(tmp.win, 0, 0);
     mvwprintw(tmp.win, 1, 1, header_format, "PID", "NAME", "PRI", "PC", "SID",
@@ -28,19 +32,29 @@ struct ui_process ui_create_process(WINDOW *parent_win)
 }
 
 void ui_render_process(struct ui_process *ui_process)
-{
+{ // TODO: my brain can't handle it no more, i'm sorry
+    void *ptr; // tmp pointer
+
+    /* get data from core */
+    struct vector *vec_process_info = get_processes_info(true);
+
+    /* create strings from menu */
+    ptr = realloc(ui_process->item_str,
+        vec_process_info->length * sizeof(*ui_process->item_str));
+    assert(ptr != NULL);
+    ui_process->item_str = ptr;
+
+    /* fill strings with useful data */
+    for (size_t i = 0; i < vec_process_info->length; i++) {
+        struct process_info *info = vector_get(vec_process_info, i);
+        sprintf(ui_process->item_str[i], item_format, info->process_id,
+            info->name, info->priority, info->program_counter,
+            info->instr_total, info->segment_id, info->time_elapsed_ut);
+    }
+
+    /* create menu items */
+
 #if 0
-    // Creating strings
-    ui_process->items_length = 2; // TODO: not hardcoded
-    ui_process->item_str
-        = malloc(ui_process->items_length * sizeof(*ui_process->item_str));
-
-    // TODO: not hardcoded
-    sprintf(ui_process->item_str[0], item_format, 0, "nome do programa", 20, 2,
-        5, 0, 234);
-    sprintf(ui_process->item_str[1], item_format, 1, "nome do programa2", 20, 3,
-        6, 1, 9);
-
     // Creating items
     ui_process->items
         = (ITEM **)calloc(ui_process->items_length + 1, sizeof(ITEM *));
