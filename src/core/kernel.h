@@ -27,3 +27,4 @@ void syscall(enum event_code event, void *extra_data);
 void kernel_run();
 void kernel_shutdown();
 size_t get_next_pid();
+void wakeup(size_t pid);

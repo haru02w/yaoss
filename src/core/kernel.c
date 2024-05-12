@@ -86,3 +86,5 @@ size_t get_next_pid()
 
     return last_proc->pid + 1;
 }
+
+void wakeup(size_t pid) { sched_unlock_process(&(kernel.scheduler), pid); }
