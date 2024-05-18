@@ -27,10 +27,10 @@ static void process_create(void *extra_data)
 static void process_finish(void *extra_data)
 {
     pdata_t *process = (pdata_t *)extra_data;
+    sched_next_process(&kernel.scheduler);
     segment_table_remove(&kernel.seg_table, process->seg_id);
-    program_destroy(process);
-    // TODO: vector_remove()
-    // TODO: scheduler_remove()
+    kernel.cur_process_time = 0;
+    //  TODO: scheduler_remove()
 }
 
 static void mem_load_req(void *extra_data)
@@ -95,9 +95,9 @@ static void exec_instruction(pdata_t *process, instruction_t *instruction)
             process->remaining_time -= max_exec_time;
             kernel.cur_process_time += max_exec_time;
         } else {
-            instruction->value = 0;
             process->remaining_time -= instruction->value;
             kernel.cur_process_time += instruction->value;
+            instruction->value = 0;
             process->pc++;
         }
         break;
@@ -124,11 +124,12 @@ void kernel_run()
 {
     pdata_t *process = kernel.scheduler.atual;
 
-    if (process == NULL)
+    if (process == NULL || process->status == TERMINATED)
         return;
 
     if (kernel.cur_process_time >= process->quantum_time) {
-        syscall(PROCESS_INTERRUPT, process);
+        int is_blocked = 0;
+        syscall(PROCESS_INTERRUPT, &is_blocked);
         return;
     }
 
@@ -160,8 +161,8 @@ size_t get_next_pid()
     if (kernel.process_table.length == 0)
         return 0;
 
-    pdata_t *last_proc
-        = vector_get(&kernel.process_table, kernel.process_table.length - 1);
+    pdata_t *last_proc = *(pdata_t **)vector_get(
+        &kernel.process_table, kernel.process_table.length - 1);
 
     return last_proc->pid + 1;
 }

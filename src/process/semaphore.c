@@ -26,7 +26,7 @@ struct semaphore *semaphore_init(const char *sem)
 
 void semaphore_register(struct vector *sem_table, const char *sem)
 {
-    for (int i = 0; i < sem_table->length; i++) {
+    for (size_t i = 0; i < sem_table->length; i++) {
         if (strcmp(((struct semaphore *)vector_get(sem_table, i))->name, sem)) {
             printf("semafaro ja registrado\n");
             return;
@@ -39,7 +39,7 @@ void semaphore_register(struct vector *sem_table, const char *sem)
 
 struct semaphore *semaphore_find(struct vector *sem_table, const char *sem)
 {
-    for (int i = 0; i < sem_table->length; i++) {
+    for (size_t i = 0; i < sem_table->length; i++) {
         if (strcmp(((struct semaphore *)vector_get(sem_table, i))->name, sem)) {
             return (struct semaphore *)vector_get(sem_table, i);
         }

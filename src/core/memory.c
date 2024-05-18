@@ -58,8 +58,6 @@ static struct page *segment_resident_search(struct segment *seg, size_t page_id)
 
 void segment_table_remove(struct segment_table *seg_table, size_t seg_id)
 {
-    assert(seg_id < seg_table->table.length);
-
     struct segment *seg_found = segment_table_search(seg_table, seg_id);
 
     for (size_t i = 0; i < seg_found->page_table_size; i++) {
