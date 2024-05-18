@@ -30,7 +30,7 @@ find_library(MENU_LIBRARY menu)
 include_directories(${CURSES_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} ${MENU_LIBRARY} ${CURSES_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${MENU_LIBRARY} ${CURSES_LIBRARIES} m)
 
 option(TESTING "Enable tests." OFF)
 
