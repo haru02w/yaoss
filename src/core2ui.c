@@ -13,38 +13,30 @@ struct simulation_info get_simulation_info(/* idk what you need */)
     };
 }
 
-struct vector *get_processes_info(/* idk what you need */
-    bool keep_running)
+struct vector *get_processes_info(/* idk what you need */)
 {
     static struct vector process_rows = {};
-    if (process_rows.data_size == 0)
+    if (!process_rows.data_size)
         process_rows = vector_create(sizeof(struct process_info));
 
-    if (!keep_running) {
-        vector_destroy(&process_rows);
-        return NULL;
-    }
-
-    int length = 1;
-    void *ptr
-        = realloc(process_rows.data, length * sizeof(struct process_info));
+    process_rows.length = 3;
+    void *ptr = realloc(
+        process_rows.data, process_rows.length * sizeof(struct process_info));
     assert(ptr != NULL);
-
     process_rows.data = ptr;
-    process_rows.length = length;
 
     srand(time(NULL));
-
-    memcpy(process_rows.data,
-        &(struct process_info) {
-            .process_id = rand(),
-            .name = "Name yay",
-            .priority = rand() % 21,
-            .program_counter = rand(),
-            .instr_total = 10000,
-            .segment_id = rand(),
-            .time_elapsed_ut = rand(),
-        },
-        sizeof(struct process_info));
+    for (size_t i = 0; i < process_rows.length; i++)
+        memcpy(&process_rows.data[i * sizeof(struct process_info)],
+            &(struct process_info) {
+                .process_id = rand(),
+                .name = "Name yay",
+                .priority = rand() % 21,
+                .program_counter = rand(),
+                .instr_total = 10000,
+                .segment_id = rand(),
+                .time_elapsed_ut = rand(),
+            },
+            sizeof(struct process_info));
     return &process_rows;
 }

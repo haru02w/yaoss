@@ -5,7 +5,12 @@
 
 struct vector vector_create(size_t data_size)
 {
-    return (struct vector) { .data_size = data_size };
+    return (struct vector) {
+        .data_size = data_size,
+        .length = 0,
+        .capacity = 0,
+        .data = NULL,
+    };
 }
 
 void vector_destroy(struct vector *vec) { free(vec->data); }

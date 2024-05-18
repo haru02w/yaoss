@@ -1,10 +1,10 @@
 #include "ui.h"
+#include "../core2ui.h"
 #include "main/details.h"
 #include "main/footer.h"
 #include "main/header.h"
 #include "main/process.h"
 #include <curses.h>
-#include <math.h>
 #include <menu.h>
 #include <stdint.h>
 
@@ -28,31 +28,35 @@ void run_curses()
     ui_render_footer(&ui_footer);
 
     for (;;) {
+        ui_process.proc_info = get_processes_info();
+
+        if (ui_process.highlight > (int)ui_process.proc_info->length)
+            ui_process.highlight = ui_process.proc_info->length;
+
         ui_render_header(&ui_header, ut, time_elapsed);
         ui_render_process(&ui_process);
         switch (getch()) {
         case KEY_DOWN:
-            // TODO:
+            if (ui_process.highlight + 1 < (int)ui_process.proc_info->length)
+                ++ui_process.highlight;
             break;
         case KEY_UP:
-            // TODO:
+            if (ui_process.highlight - 1 >= 0)
+                --ui_process.highlight;
             break;
         case '+':
-            if (ut + UT_CHANGE > INFINITY)
-                break;
-            ut += 0.00001;
+            ut += UT_CHANGE;
             break;
         case '-':
-            if (ut - UT_CHANGE < 0)
-                break;
-            ut -= 0.00001;
+            if (ut - UT_CHANGE >= 0)
+                ut -= UT_CHANGE;
             break;
         case ' ':
             paused = !paused;
             break;
         case 'c':
             echo();
-            // TODO: create_process(path)
+            // TODO: create_process(path) and create panel
             (void)ui_ask_path_footer(&ui_footer);
             noecho();
             ui_render_footer(&ui_footer);
