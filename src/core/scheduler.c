@@ -90,6 +90,10 @@ void sched_unlock_process(struct sched *sched, size_t pid)
 /// @param sched scheduler pointer
 void sched_process_block(struct sched *sched)
 {
+    if (sched->atual == NULL) {
+        printf("erro não há processo escalonado");
+        return;
+    }
     list_add(sched->blocked_list, (void *)sched->atual);
     sched->atual->status = BLOCKED;
     sched->atual = NULL;
@@ -108,4 +112,16 @@ void sched_next_process(struct sched *sched)
     }
     sched->atual = (pdata_t *)dequeue(sched->ready_queue);
     sched->atual->status = RUNNING;
+}
+
+/// @brief function that remove the process that reach at end
+/// @param sched scheduler pointer
+void sched_remove(struct sched *sched)
+{
+    if (sched->atual == NULL) {
+        printf("erro não há processo escalonado");
+        return;
+    }
+    sched->atual->status = TERMINATED;
+    sched->atual = NULL;
 }

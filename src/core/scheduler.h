@@ -42,3 +42,7 @@ void sched_process_block(struct sched *sched);
 ///     (if a process is already running, it is moved to the end of the queue)
 /// @param sched scheduler pointer
 void sched_next_process(struct sched *sched);
+
+/// @brief function that remove the process that reach at end
+/// @param sched scheduler pointer
+void sched_remove(struct sched *sched);
