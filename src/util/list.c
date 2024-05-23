@@ -104,7 +104,8 @@ void *dequeue(struct list *queue)
     if (node == NULL)
         return NULL;
     queue->head = node->next;
-    queue->head->prev = NULL;
+    if (queue->head != NULL)
+        queue->head->prev = NULL;
     queue->size--;
     return node->data;
 }
