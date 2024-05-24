@@ -9,6 +9,6 @@ struct ui_process {
     struct vector *proc_info;
 };
 
-struct ui_process ui_create_process(WINDOW *parent_win);
-void ui_render_process(struct ui_process *main_list);
-void ui_destroy_process(struct ui_process *main_list);
+struct ui_process ui_process_create(WINDOW *parent_win);
+void ui_process_render(struct ui_process *ui_process);
+void ui_process_destroy(struct ui_process *ui_process);

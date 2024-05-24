@@ -32,9 +32,11 @@ struct vector *get_processes_info(/* idk what you need */)
                 .process_id = rand(),
                 .name = "Name yay",
                 .priority = rand() % 21,
+                .process_state = 'R',
                 .program_counter = rand(),
                 .instr_total = 10000,
                 .segment_id = rand(),
+                .memory_usage_kb = rand(),
                 .time_elapsed_ut = rand(),
             },
             sizeof(struct process_info));

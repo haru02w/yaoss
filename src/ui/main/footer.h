@@ -4,7 +4,7 @@
 struct ui_footer {
     WINDOW *win;
 };
-struct ui_footer ui_create_footer(WINDOW *parent_win);
-char *ui_ask_path_footer(struct ui_footer *main_footer);
-void ui_render_footer(struct ui_footer *main_footer);
-void ui_destroy_footer(struct ui_footer *main_footer);
+struct ui_footer ui_footer_create(WINDOW *parent_win);
+char *ui_footer_ask_path(struct ui_footer *main_footer);
+void ui_footer_render(struct ui_footer *main_footer);
+void ui_footer_destroy(struct ui_footer *main_footer);

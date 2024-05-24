@@ -7,6 +7,7 @@
 #include <curses.h>
 #include <menu.h>
 #include <stdint.h>
+#include <time.h>
 
 void ui_create_stdscr();
 void ui_destroy_stdscr();
@@ -21,58 +22,77 @@ void run_curses()
 
     ui_create_stdscr();
     struct ui_header ui_header = ui_create_header(stdscr);
-    struct ui_process ui_process = ui_create_process(stdscr);
-    struct ui_footer ui_footer = ui_create_footer(stdscr);
-    struct ui_details ui_details = ui_create_details(stdscr);
+    struct ui_process ui_process = ui_process_create(stdscr);
+    struct ui_details ui_details = ui_details_create(stdscr);
+    struct ui_footer ui_footer = ui_footer_create(stdscr);
+    // TODO: kernel_init()
 
-    ui_render_footer(&ui_footer);
+    ui_footer_render(&ui_footer);
 
-    for (;;) {
+    clock_t it_clock = clock();
+    while (true) {
         ui_process.proc_info = get_processes_info();
 
+        // Fix last option of menu if length changes
         if (ui_process.highlight > (int)ui_process.proc_info->length)
             ui_process.highlight = ui_process.proc_info->length;
+        else if (ui_process.highlight < 0 && ui_process.proc_info != NULL)
+            ui_process.highlight = 0;
 
         ui_render_header(&ui_header, ut, time_elapsed);
-        ui_render_process(&ui_process);
+        ui_process_render(&ui_process);
+        ui_details_render(&ui_details);
         switch (getch()) {
         case KEY_DOWN:
+            // scroll down
             if (ui_process.highlight + 1 < (int)ui_process.proc_info->length)
                 ++ui_process.highlight;
             break;
         case KEY_UP:
+            // scroll up
             if (ui_process.highlight - 1 >= 0)
                 --ui_process.highlight;
             break;
         case '+':
+            // increase time per ut
             ut += ut_change;
             break;
         case '-':
+            // decrease time per ut
             if (ut - ut_change >= 0)
                 ut -= ut_change;
             break;
         case ' ':
+            // toggle pause
             paused = !paused;
             break;
         case 'c':
-            echo();
+            // create process
             // TODO: create_process(path) and create panel
-            (void)ui_ask_path_footer(&ui_footer);
+            echo();
+            (void)ui_footer_ask_path(&ui_footer);
             noecho();
-            ui_render_footer(&ui_footer);
+            ui_footer_render(&ui_footer);
             break;
         case 'q':
+            // Quit
             goto end;
         }
 
-        sleep(ut);
-        time_elapsed += !paused;
+        // Check if it's time to run the next kernel operation
+        if ((((double)(clock() - it_clock)) / CLOCKS_PER_SEC) >= ut
+            && !paused) {
+            ++time_elapsed;
+            it_clock = clock();
+            // TODO: kernel_run();
+        }
     };
 end:
+    // TODO: kernel_shutdown()
     ui_destroy_header(&ui_header);
-    ui_destroy_process(&ui_process);
-    ui_destroy_details(&ui_details);
-    ui_destroy_footer(&ui_footer);
+    ui_process_destroy(&ui_process);
+    ui_details_destroy(&ui_details);
+    ui_footer_destroy(&ui_footer);
     ui_destroy_stdscr();
 }
 
