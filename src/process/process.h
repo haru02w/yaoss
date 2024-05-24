@@ -3,7 +3,13 @@
 #define QT 5000 // basis quantum time
 
 /// @brief enum for the status of a process
-typedef enum { NEW, READY, BLOCKED, TERMINATED, RUNNING } status_t;
+typedef enum {
+    NEW = 'N',
+    READY = 'R',
+    BLOCKED = 'B',
+    TERMINATED = 'T',
+    RUNNING = 'R'
+} status_t;
 
 /// @brief struct for data of a process (control process block (CPB))
 typedef struct process_data {

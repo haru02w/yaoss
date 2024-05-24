@@ -64,6 +64,7 @@ void program_init(const char *path)
         char *aux = malloc(len + 1);
         strcpy(aux, buff);
         vector_push_back(&process->semaphore, &aux);
+        semaphore_add(aux);
         i = i + len;
     }
 

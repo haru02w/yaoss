@@ -26,7 +26,8 @@ struct kernel {
 
 void kernel_init();
 void interrupt_control(enum event_code interrupt_code, void *extra_data);
-void syscall(enum event_code event, void *extra_data);
+void syscall(enum event_code syscall_code, void *extra_data);
+void semaphore_add(const char *semaphore);
 void kernel_run();
 void kernel_shutdown();
 size_t get_next_pid();

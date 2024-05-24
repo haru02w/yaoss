@@ -27,10 +27,10 @@ static void process_create(void *extra_data)
 static void process_finish(void *extra_data)
 {
     pdata_t *process = (pdata_t *)extra_data;
+    sched_remove(&kernel.scheduler);
     sched_next_process(&kernel.scheduler);
     segment_table_remove(&kernel.seg_table, process->seg_id);
     kernel.cur_process_time = 0;
-    //  TODO: scheduler_remove()
 }
 
 static void mem_load_req(void *extra_data)
@@ -78,6 +78,11 @@ void interrupt_control(enum event_code interrupt_code, void *extra_data)
     kernel_event[interrupt_code](extra_data);
 }
 
+void semaphore_add(const char *semaphore)
+{
+    semaphore_register(&kernel.semaphore_table, semaphore);
+}
+
 // TODO: read, write, print (works like exec for now) (change for a function
 // pointer array)
 static void exec_instruction(pdata_t *process, instruction_t *instruction)
@@ -108,12 +113,14 @@ static void exec_instruction(pdata_t *process, instruction_t *instruction)
             process->remaining_time -= 200;
             kernel.cur_process_time += max_exec_time;
         }
+        process->pc++;
         break;
     case V:
         syscall(SEMAPHORE_V,
             semaphore_find(&kernel.semaphore_table, instruction->sem));
         process->remaining_time -= 200;
         kernel.cur_process_time += max_exec_time;
+        process->pc++;
         break;
     default:;
     }
