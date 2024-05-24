@@ -11,13 +11,13 @@
 void ui_create_stdscr();
 void ui_destroy_stdscr();
 
-#define UT_CHANGE 0.00001
 uint64_t time_elapsed = 0;
 bool paused = true;
 
 void run_curses()
 {
     double ut = 0.0001;
+    double ut_change = ut * 0.1;
 
     ui_create_stdscr();
     struct ui_header ui_header = ui_create_header(stdscr);
@@ -45,11 +45,11 @@ void run_curses()
                 --ui_process.highlight;
             break;
         case '+':
-            ut += UT_CHANGE;
+            ut += ut_change;
             break;
         case '-':
-            if (ut - UT_CHANGE >= 0)
-                ut -= UT_CHANGE;
+            if (ut - ut_change >= 0)
+                ut -= ut_change;
             break;
         case ' ':
             paused = !paused;
