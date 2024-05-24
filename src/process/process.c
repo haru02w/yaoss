@@ -101,7 +101,7 @@ void program_init(const char *path)
 void program_destroy(pdata_t *program)
 {
     // Free each char pointer in the vector of semaphores
-    for (int i = 0; i < program->semaphore.length; i++) {
+    for (size_t i = 0; i < program->semaphore.length; i++) {
         free(VEC_GET(program->semaphore, i, char *));
     }
     vector_destroy(&(program->semaphore));
