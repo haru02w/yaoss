@@ -13,9 +13,10 @@ struct ui_header ui_create_header(WINDOW *parent_win)
 void ui_render_header(
     struct ui_header *main_header, double ut, uint64_t time_elapsed)
 {
-    static struct simulation_info prev_info = { 0 };
+    static struct sim_info prev_info = { 0 };
 
-    struct simulation_info info = get_simulation_info();
+    struct sim_info info;
+    get_simulation_info(&info);
 
     // only redraw if needed
     if (info.memory_usage_mb != prev_info.memory_usage_mb) {

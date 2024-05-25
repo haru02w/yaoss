@@ -6,7 +6,7 @@ struct ui_process {
     WINDOW *win;
     WINDOW *menuwin;
     int highlight;
-    struct vector *proc_info;
+    struct vector proc_info;
 };
 
 struct ui_process ui_process_create(WINDOW *parent_win);

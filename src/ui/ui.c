@@ -31,13 +31,13 @@ void run_curses()
 
     clock_t it_clock = clock();
     while (true) {
-        ui_process.proc_info = get_processes_info();
+        get_proc_info(&ui_process.proc_info);
+        get_sem_info(&ui_details.sem_info, ui_process.highlight);
+        get_page_info(&ui_details.page_info, ui_process.highlight);
 
         // Fix last option of menu if length changes
-        if (ui_process.highlight > (int)ui_process.proc_info->length)
-            ui_process.highlight = ui_process.proc_info->length;
-        else if (ui_process.highlight < 0 && ui_process.proc_info != NULL)
-            ui_process.highlight = 0;
+        if (ui_process.highlight > (int)ui_process.proc_info.length)
+            ui_process.highlight = ui_process.proc_info.length;
 
         ui_render_header(&ui_header, ut, time_elapsed);
         ui_process_render(&ui_process);
@@ -45,7 +45,7 @@ void run_curses()
         switch (getch()) {
         case KEY_DOWN:
             // scroll down
-            if (ui_process.highlight + 1 < (int)ui_process.proc_info->length)
+            if (ui_process.highlight + 1 < (int)ui_process.proc_info.length)
                 ++ui_process.highlight;
             break;
         case KEY_UP:
