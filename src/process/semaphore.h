@@ -7,6 +7,7 @@ struct semaphore {
     char name[10];
     unsigned int S;
     struct list *waiters;
+    int handler_pid;
 };
 
 struct vector semaphore_table_init();

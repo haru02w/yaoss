@@ -21,6 +21,7 @@ struct semaphore *semaphore_init(const char *sem)
     strcpy(sema->name, sem);
     sema->S = 0;
     sema->waiters = list_create(NULL);
+    sema->handler_pid = -1;
     return sema;
 }
 
@@ -54,6 +55,7 @@ void semaphore_P(struct semaphore *sem, pdata_t *proc)
 {
     if (sem->S == 0) {
         sem->S++;
+        sem->handler_pid = proc->pid;
         return;
     } else {
         sem->S++;
@@ -69,5 +71,8 @@ void semaphore_V(struct semaphore *sem)
     if (sem->S > 0) {
         pdata_t *proc = dequeue(sem->waiters);
         wakeup(proc->pid);
+        sem->handler_pid = proc->pid;
+    } else {
+        sem->handler_pid = -1;
     }
 }
