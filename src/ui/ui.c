@@ -18,7 +18,7 @@ bool paused = true;
 
 void run_curses()
 {
-    double ut = 0.0001;
+    double ut = 0.001;
     double ut_change = ut * 0.1;
 
     ui_create_stdscr();
@@ -32,6 +32,14 @@ void run_curses()
 
     clock_t it_clock = clock();
     while (true) {
+        // Check if it's time to run the next kernel operation
+        if ((((double)(clock() - it_clock)) / CLOCKS_PER_SEC) >= ut
+            && !paused) {
+            ++time_elapsed;
+            it_clock = clock();
+            kernel_run();
+        }
+
         get_proc_info(&ui_process.proc_info);
         get_sem_info(&ui_details.sem_info, ui_process.highlight);
         get_page_info(&ui_details.page_info, ui_process.highlight);
@@ -78,14 +86,6 @@ void run_curses()
         case 'q':
             // Quit
             goto end;
-        }
-
-        // Check if it's time to run the next kernel operation
-        if ((((double)(clock() - it_clock)) / CLOCKS_PER_SEC) >= ut
-            && !paused) {
-            ++time_elapsed;
-            it_clock = clock();
-            kernel_run();
         }
     };
 end:

@@ -25,7 +25,7 @@ struct process_info {
 
 struct semaphore_info {
     char *name;
-    uint16_t working_process_id;
+    int32_t working_process_id;
     uint64_t waiting_counter;
 };
 

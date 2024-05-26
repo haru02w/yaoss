@@ -10,7 +10,6 @@
 
 void get_simulation_info(struct sim_info *sim_info)
 {
-    srand(time(NULL));
     sim_info->memory_usage_mb
         = (MAX_MEMORY_SIZE - kernel.seg_table.remaining_memory) / MEGABYTE;
 }
@@ -25,7 +24,6 @@ void get_proc_info(struct vector *proc_info)
     assert(ptr != NULL);
     proc_info->data = ptr;
 
-    srand(time(NULL));
     for (size_t i = 0; i < proc_info->length; i++) {
         pdata_t *process = kernel_get_process(i + 1);
         instruction_t *instruction = segment_fetch_instruction(
@@ -63,7 +61,6 @@ void get_sem_info(struct vector *sem_info, uint16_t pid)
     assert(ptr != NULL);
     sem_info->data = ptr;
 
-    srand(time(NULL));
     for (size_t i = 0; i < sem_info->length; i++) {
         const char *semaphore_name
             = *(char **)vector_get(&process->semaphore, i);
@@ -95,7 +92,6 @@ void get_page_info(struct vector *page_info, uint16_t pid)
     assert(ptr != NULL);
     page_info->data = ptr;
 
-    srand(time(NULL));
     for (size_t i = 0; i < page_info->length; i++) {
         memcpy(&page_info->data[i * sizeof(struct page_info)],
             &(struct page_info) {

@@ -47,9 +47,14 @@ void ui_details_render(struct ui_details *ui_details)
     // semaphore table
     for (size_t i = 0; i < ui_details->sem_info.length; ++i) {
         struct semaphore_info *info = vector_get(&ui_details->sem_info, i);
-        // Just to not fuck up the menu, i'm using MIN macro
-        mvwprintw(ui_details->menu_semaphore, i, 0, "%4.4s  %3.3hu %4.4lu",
-            info->name, info->working_process_id, info->waiting_counter);
+
+        // handle semaphore with no use
+        char wpid[4];
+        sprintf(wpid, info->working_process_id < 0 ? "   " : "%3.3hu",
+            (uint16_t)info->working_process_id);
+
+        mvwprintw(ui_details->menu_semaphore, i, 0, "%4.4s  %3.3s %4.4lu",
+            info->name, wpid, info->waiting_counter);
     }
 
     // page table
