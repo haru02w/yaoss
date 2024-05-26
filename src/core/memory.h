@@ -43,8 +43,7 @@ struct segment_table {
 };
 
 void segment_table_init(struct segment_table *seg_table);
-struct segment *segment_table_search(
-    struct segment_table *seg_table, size_t seg_id);
+size_t segment_table_search(struct segment_table *seg_table, size_t seg_id);
 void segment_table_remove(struct segment_table *seg_table, size_t seg_id);
 void segment_table_destroy(struct segment_table *seg_table);
 

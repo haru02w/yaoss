@@ -24,8 +24,6 @@ void program_init(const char *path)
 
     // If file not found, print error message, free allocated memory, and return
     if (!fp) {
-        vector_destroy(&process->semaphore);
-        vector_destroy(&code);
         free(process);
         return;
     }

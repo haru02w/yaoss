@@ -76,6 +76,6 @@ instruction_t *inst_read(char *string)
 
 void instruction_to_string(char *dest, opcode_t opcode)
 {
-    char *str_table[] = { "exec", "read", "write", "sem_p", "sem_v", "print" };
+    char *str_table[] = { "exec", "read", "write", "sem_v", "sem_p", "print" };
     strcpy(dest, str_table[opcode]);
 }

@@ -15,19 +15,18 @@ static inline void segment_table_add(
     vector_push_back(&seg_table->table, seg);
 }
 
-struct segment *segment_table_search(
-    struct segment_table *seg_table, size_t seg_id)
+size_t segment_table_search(struct segment_table *seg_table, size_t seg_id)
 {
     for (size_t i = 0; i < seg_table->table.length; i++) {
         struct segment *cur_seg
             = (struct segment *)vector_get(&seg_table->table, i);
 
         if (cur_seg->id == seg_id) {
-            return cur_seg;
+            return i;
         }
     }
 
-    return NULL;
+    return 0;
 }
 
 static struct page *segment_page_search(struct segment *seg, size_t page_id)
@@ -58,7 +57,8 @@ static struct page *segment_resident_search(struct segment *seg, size_t page_id)
 
 void segment_table_remove(struct segment_table *seg_table, size_t seg_id)
 {
-    struct segment *seg_found = segment_table_search(seg_table, seg_id);
+    size_t seg_table_id = segment_table_search(seg_table, seg_id);
+    struct segment *seg_found = vector_get(&seg_table->table, seg_table_id);
 
     for (size_t i = 0; i < seg_found->page_table_size; i++) {
         struct page *cur_page = seg_found->page_table[i];
@@ -73,9 +73,8 @@ void segment_table_remove(struct segment_table *seg_table, size_t seg_id)
     free(seg_found->page_table);
     free(seg_found->resident_set);
 
-    // TODO : vector_remove(&seg_table->table, seg_id);
-
     seg_table->remaining_memory += seg_found->segment_size;
+    vector_remove(&seg_table->table, seg_table_id);
 }
 
 void segment_table_destroy(struct segment_table *seg_table)
@@ -169,7 +168,8 @@ static void mem_page_swap(struct segment *seg, struct page *new_page)
 instruction_t *segment_fetch_instruction(
     struct segment_table *table, size_t seg_id, size_t pc)
 {
-    struct segment *found_segment = segment_table_search(table, seg_id);
+    struct segment *found_segment
+        = vector_get(&table->table, segment_table_search(table, seg_id));
     size_t page_id_nedeed = floor((double)pc / MAX_PAGE_INSTRUCTION);
 
     struct page *page_found

@@ -83,8 +83,8 @@ void get_page_info(struct vector *page_info, uint16_t pid)
     pdata_t *process = kernel_get_process(pid + 1);
     if (process == NULL)
         return;
-    struct segment *segment
-        = segment_table_search(&kernel.seg_table, process->seg_id);
+    struct segment *segment = vector_get(&kernel.seg_table.table,
+        segment_table_search(&kernel.seg_table, process->seg_id));
 
     page_info->length = segment->page_table_size;
     void *ptr = realloc(

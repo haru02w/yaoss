@@ -12,9 +12,9 @@ static void process_interrupt(void *extra_data)
 
     if (blocked) {
         sched_process_block(&kernel.scheduler);
-    } else {
-        sched_next_process(&kernel.scheduler);
     }
+
+    sched_next_process(&kernel.scheduler);
 
     kernel.cur_process_time = 0;
 }
@@ -29,7 +29,16 @@ static void process_finish(void *extra_data)
     pdata_t *process = (pdata_t *)extra_data;
     sched_remove(&kernel.scheduler);
     sched_next_process(&kernel.scheduler);
-    // segment_table_remove(&kernel.seg_table, process->seg_id);
+    segment_table_remove(&kernel.seg_table, process->seg_id);
+
+    for (size_t i = 0; i < kernel.process_table.length; i++) {
+        pdata_t *cur_proc = kernel_get_process(i + 1);
+        if (process->pid == cur_proc->pid) {
+            vector_remove(&kernel.process_table, i);
+            break;
+        }
+    }
+
     kernel.cur_process_time = 0;
 }
 
@@ -145,7 +154,7 @@ void kernel_run()
 
     exec_instruction(process, instruction);
 
-    if (process->remaining_time == 0) {
+    if (process->remaining_time == 0 || process->pc == process->code_size) {
         syscall(PROCESS_FINISH, process);
     }
 }
