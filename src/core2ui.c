@@ -53,8 +53,10 @@ void get_sem_info(struct vector *sem_info, uint16_t pid)
 {
     // TODO: get semaphore information of @pid
     pdata_t *process = kernel_get_process(pid + 1);
-    if (process == NULL || process->semaphore.length == 0)
+    if (process == NULL || process->semaphore.length == 0) {
+        sem_info->length = 0;
         return;
+    }
     sem_info->length = process->semaphore.length;
     void *ptr = realloc(
         sem_info->data, sem_info->length * sizeof(struct semaphore_info));
@@ -81,8 +83,10 @@ void get_page_info(struct vector *page_info, uint16_t pid)
 {
     // TODO: get page information of @pid
     pdata_t *process = kernel_get_process(pid + 1);
-    if (process == NULL)
+    if (process == NULL) {
+        page_info->length = 0;
         return;
+    }
     struct segment *segment = vector_get(&kernel.seg_table.table,
         segment_table_search(&kernel.seg_table, process->seg_id));
 
