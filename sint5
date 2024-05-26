@@ -1,0 +1,16 @@
+sint5
+5
+9999
+320
+s t
+
+exec 1000
+read 20
+exec 400
+read 30
+exec 500
+exec 200
+exec 20000
+write 20
+print 150
+exec 500

@@ -72,11 +72,14 @@ void sched_unlock_process(struct sched *sched, size_t pid)
     } else {
         if (sched->blocked_list->tail->data == node->data) {
             sched->blocked_list->tail = node->prev;
+            node->prev->next = NULL;
         } else if (sched->blocked_list->head->data == node->data) {
             sched->blocked_list->head = node->next;
+            node->next->prev = NULL;
+        } else {
+            node->prev->next = NULL;
+            node->next->prev = NULL;
         }
-        node->prev->next = NULL;
-        node->next->prev = NULL;
         node->prev = node->next = NULL;
         sched->blocked_list->size--;
     }
