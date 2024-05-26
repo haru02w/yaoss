@@ -40,8 +40,11 @@ void vector_pop_back(struct vector *vec)
 void vector_remove(struct vector *vec, size_t index)
 {
     assert(index < vec->length);
-    memmove(&vec->data[index * vec->data_size],
-        &vec->data[(index + 1) * vec->data_size], vec->data_size);
+    if (index < vec->length - 1) {
+        memmove(&vec->data[index * vec->data_size],
+            &vec->data[(index + 1) * vec->data_size],
+            (vec->length - index - 1) * vec->data_size);
+    }
     vec->length--;
 }
 

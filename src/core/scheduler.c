@@ -1,4 +1,5 @@
 #include "scheduler.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -44,6 +45,7 @@ void sched_add_process(struct sched *sched, pdata_t *pdata)
 ///     node pointer for the process with this pid
 struct list_node *get_process(struct list *list, size_t pid)
 {
+    assert(list->size != 0);
     struct list_node *node = list->head;
     while (((pdata_t *)(node->data))->pid != pid
         && list->tail->data == node->data) {
