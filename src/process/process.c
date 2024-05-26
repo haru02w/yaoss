@@ -33,7 +33,8 @@ void program_init(const char *path)
 
     // Get name
     fgets(buffer, sizeof buffer, fp);
-    strncpy(process->name, buffer, strlen(buffer) - 1);
+    buffer[strlen(buffer) - 1] = '\0';
+    strcpy(process->name, buffer);
 
     // Get segment id
     fgets(buffer, sizeof buffer, fp);

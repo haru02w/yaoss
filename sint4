@@ -7,13 +7,13 @@ s t bomba
 exec 1000
 read 20
 exec 400
-read 30
 exec 500
+read 30
 P(s)
 P(bomba)
 exec 200
 P(t)
-exec 200000000
+exec 2000
 write 20
 print 150
 V(t)
