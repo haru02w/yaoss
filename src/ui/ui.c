@@ -1,4 +1,5 @@
 #include "ui.h"
+#include "../core/kernel.h"
 #include "../core2ui.h"
 #include "main/details.h"
 #include "main/footer.h"
@@ -25,7 +26,7 @@ void run_curses()
     struct ui_process ui_process = ui_process_create(stdscr);
     struct ui_details ui_details = ui_details_create(stdscr);
     struct ui_footer ui_footer = ui_footer_create(stdscr);
-    // TODO: kernel_init()
+    kernel_init();
 
     ui_footer_render(&ui_footer);
 
@@ -70,7 +71,7 @@ void run_curses()
             // create process
             // TODO: create_process(path) and create panel
             echo();
-            (void)ui_footer_ask_path(&ui_footer);
+            syscall(PROCESS_CREATE, ui_footer_ask_path(&ui_footer));
             noecho();
             ui_footer_render(&ui_footer);
             break;
@@ -84,7 +85,7 @@ void run_curses()
             && !paused) {
             ++time_elapsed;
             it_clock = clock();
-            // TODO: kernel_run();
+            kernel_run();
         }
     };
 end:

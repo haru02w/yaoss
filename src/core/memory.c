@@ -15,7 +15,7 @@ static inline void segment_table_add(
     vector_push_back(&seg_table->table, seg);
 }
 
-static struct segment *segment_table_search(
+struct segment *segment_table_search(
     struct segment_table *seg_table, size_t seg_id)
 {
     for (size_t i = 0; i < seg_table->table.length; i++) {

@@ -30,7 +30,6 @@ void semaphore_register(struct vector *sem_table, const char *sem)
     for (size_t i = 0; i < sem_table->length; i++) {
         if (strcmp(((struct semaphore *)vector_get(sem_table, i))->name, sem)
             == 0) {
-            printf("semafaro ja registrado\n");
             return;
         }
     }
@@ -47,7 +46,6 @@ struct semaphore *semaphore_find(struct vector *sem_table, const char *sem)
             return (struct semaphore *)vector_get(sem_table, i);
         }
     }
-    printf("semaforo nao encontrado\n");
     return NULL;
 }
 

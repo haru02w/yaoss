@@ -19,12 +19,12 @@ struct process_info {
     uint16_t segment_id;
     uint64_t memory_usage_kb;
     uint64_t time_elapsed_ut;
-    char operation[4 + 1];
+    char operation[5 + 1];
     char operation_value[6 + 1];
 };
 
 struct semaphore_info {
-    char name[4 + 1];
+    char *name;
     uint16_t working_process_id;
     uint64_t waiting_counter;
 };

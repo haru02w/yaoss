@@ -22,3 +22,5 @@ typedef struct instruction {
 /// @param string String read from the program archive
 /// @return Pointer to instruction_t struct
 instruction_t *inst_read(char *string);
+
+void instruction_to_string(char *dest, opcode_t opcode);

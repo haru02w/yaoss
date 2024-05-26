@@ -12,7 +12,6 @@ void program_init(const char *path)
 {
     // If path is NULL, return
     if (!path) {
-        printf("error, no file name\n");
         return;
     }
 
@@ -25,7 +24,6 @@ void program_init(const char *path)
 
     // If file not found, print error message, free allocated memory, and return
     if (!fp) {
-        printf("file not found\n");
         vector_destroy(&process->semaphore);
         vector_destroy(&code);
         free(process);
@@ -33,11 +31,11 @@ void program_init(const char *path)
     }
 
     // From here, the program file is read and put into the process data struct
-    char buffer[50];
+    char buffer[255];
 
     // Get name
     fgets(buffer, sizeof buffer, fp);
-    strcpy(process->name, buffer);
+    strncpy(process->name, buffer, strlen(buffer) - 1);
 
     // Get segment id
     fgets(buffer, sizeof buffer, fp);
@@ -57,15 +55,15 @@ void program_init(const char *path)
     // FIXME: Does the last semaphore store a \n?
     // Read semaphore list
     for (int i = 0; buffer[i] != '\0'; i++) {
-        char buff[50];
-        sscanf(&(buffer[i]), "%[^ ]s", buff);
+        char buff[255];
+        sscanf(&(buffer[i]), "%[^ \n]s", buff);
 
         int len = strlen(buff);
         char *aux = malloc(len + 1);
         strcpy(aux, buff);
         vector_push_back(&process->semaphore, &aux);
         semaphore_add(aux);
-        i = i + len;
+        i += len;
     }
 
     // Read the process list
@@ -86,7 +84,9 @@ void program_init(const char *path)
     }
 
     process->remaining_time = rtime;
+    process->maximum_time = rtime;
     process->pc = 0;
+    process->code_size = code.length;
     process->quantum_time = QT / process->priority;
 
     process->pid = get_next_pid();

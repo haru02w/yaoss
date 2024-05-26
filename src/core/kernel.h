@@ -30,5 +30,6 @@ void syscall(enum event_code syscall_code, void *extra_data);
 void semaphore_add(const char *semaphore);
 void kernel_run();
 void kernel_shutdown();
+pdata_t *kernel_get_process(size_t pid);
 size_t get_next_pid();
 void wakeup(size_t pid);

@@ -1,6 +1,7 @@
 #include "instruction.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /// @brief Function that converts a string containing "opcode time", "V(sem)" or
 /// "P(sem)" into an instruction_t struct.
@@ -71,4 +72,10 @@ instruction_t *inst_read(char *string)
     }
 
     return inst;
+}
+
+void instruction_to_string(char *dest, opcode_t opcode)
+{
+    char *str_table[] = { "exec", "read", "write", "sem_p", "sem_v", "print" };
+    strcpy(dest, str_table[opcode]);
 }

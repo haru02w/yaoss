@@ -28,11 +28,17 @@ typedef struct process_data {
     // size of segment
     size_t seg_size;
 
+    // code maximum size
+    size_t code_size;
+
     // priority of a process
     unsigned priority;
 
     // quantum time for round robin scheduler
     unsigned quantum_time;
+
+    // maximum time to execute the process
+    unsigned maximum_time;
 
     // approximated remaining time to process end
     unsigned remaining_time;

@@ -1,7 +1,7 @@
-#include "kernel.h"
+#include "kernel_acess.h"
 #include <math.h>
 
-#define TIME_PER_CALL 1000
+#define TIME_PER_CALL 1
 
 // TODO: move
 struct kernel kernel;
@@ -29,7 +29,7 @@ static void process_finish(void *extra_data)
     pdata_t *process = (pdata_t *)extra_data;
     sched_remove(&kernel.scheduler);
     sched_next_process(&kernel.scheduler);
-    segment_table_remove(&kernel.seg_table, process->seg_id);
+    // segment_table_remove(&kernel.seg_table, process->seg_id);
     kernel.cur_process_time = 0;
 }
 
@@ -163,13 +163,20 @@ void kernel_shutdown()
     // TODO: semaphore_table_destroy()
 }
 
+pdata_t *kernel_get_process(size_t pid)
+{
+    if (kernel.process_table.length == 0)
+        return NULL;
+
+    return *(pdata_t **)vector_get(&kernel.process_table, pid - 1);
+}
+
 size_t get_next_pid()
 {
     if (kernel.process_table.length == 0)
-        return 0;
+        return 1;
 
-    pdata_t *last_proc = *(pdata_t **)vector_get(
-        &kernel.process_table, kernel.process_table.length - 1);
+    pdata_t *last_proc = kernel_get_process(kernel.process_table.length);
 
     return last_proc->pid + 1;
 }
