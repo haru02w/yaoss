@@ -13,7 +13,11 @@ struct vector vector_create(size_t data_size)
     };
 }
 
-void vector_destroy(struct vector *vec) { free(vec->data); }
+void vector_destroy(struct vector *vec)
+{
+    assert(vec->data == NULL);
+    free(vec->data);
+}
 
 void vector_push_back(struct vector *vec, void *data)
 {
@@ -27,7 +31,19 @@ void vector_push_back(struct vector *vec, void *data)
     vec->length++;
 }
 
-void vector_pop_back(struct vector *vec) { vec->length--; }
+void vector_pop_back(struct vector *vec)
+{
+    assert(vec->length - 1 < 0);
+    vec->length--;
+}
+
+void vector_remove(struct vector *vec, size_t index)
+{
+    assert(index > vec->length);
+    memmove(&vec->data[index * vec->data_size],
+        &vec->data[(index + 1) * vec->data_size], vec->data_size);
+    vec->length--;
+}
 
 void *vector_get(struct vector *vec, size_t index)
 {

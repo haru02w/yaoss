@@ -19,4 +19,6 @@ void vector_push_back(struct vector *vec, void *data);
 
 void vector_pop_back(struct vector *vec);
 
+void vector_remove(struct vector *vec, size_t index);
+
 void *vector_get(struct vector *vec, size_t index);
