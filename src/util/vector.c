@@ -15,8 +15,8 @@ struct vector vector_create(size_t data_size)
 
 void vector_destroy(struct vector *vec)
 {
-    assert(vec->data != NULL);
-    free(vec->data);
+    if (vec->data != NULL)
+        free(vec->data);
 }
 
 void vector_push_back(struct vector *vec, void *data)
