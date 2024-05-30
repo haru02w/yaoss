@@ -39,6 +39,7 @@ static void process_finish(void *extra_data)
         }
     }
 
+    program_destroy(process);
     kernel.cur_process_time = 0;
 }
 
@@ -144,6 +145,10 @@ void kernel_run()
         return;
 
     if (kernel.cur_process_time >= process->quantum_time) {
+        if (kernel.scheduler.ready_queue->size == 1) {
+            kernel.cur_process_time = 0;
+            return;
+        }
         int is_blocked = 0;
         syscall(PROCESS_INTERRUPT, &is_blocked);
         return;
@@ -162,7 +167,7 @@ void kernel_run()
 void kernel_shutdown()
 {
     for (size_t i = 0; i < kernel.process_table.length; i++) {
-        pdata_t *cur_proc = vector_get(&kernel.process_table, i);
+        pdata_t *cur_proc = *(pdata_t **)vector_get(&kernel.process_table, i);
         program_destroy(cur_proc);
     }
 

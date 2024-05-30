@@ -89,7 +89,7 @@ void run_curses()
         }
     };
 end:
-    // TODO: kernel_shutdown()
+    kernel_shutdown();
     ui_destroy_header(&ui_header);
     ui_process_destroy(&ui_process);
     ui_details_destroy(&ui_details);

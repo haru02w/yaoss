@@ -8,7 +8,7 @@ typedef enum {
     READY = 'R',
     BLOCKED = 'B',
     TERMINATED = 'T',
-    RUNNING = 'R'
+    EXECUTING = 'E'
 } status_t;
 
 /// @brief struct for data of a process (control process block (CPB))

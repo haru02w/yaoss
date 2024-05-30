@@ -30,10 +30,13 @@ void scheduler_init(struct sched *sched)
 /// @param pdata program data to be added
 void sched_add_process(struct sched *sched, pdata_t *pdata)
 {
-    if (sched->atual != NULL)
+    if (sched->atual != NULL) {
         enqueue(sched->ready_queue, (void *)sched->atual);
+        sched->atual->status = READY;
+    }
 
     sched->atual = pdata;
+    pdata->status = EXECUTING;
 }
 
 /// @brief function that searches for a process in the list or queue with a
@@ -116,7 +119,7 @@ void sched_next_process(struct sched *sched)
         enqueue(sched->ready_queue, (void *)sched->atual);
     }
     sched->atual = (pdata_t *)dequeue(sched->ready_queue);
-    sched->atual->status = RUNNING;
+    sched->atual->status = EXECUTING;
 }
 
 /// @brief function that remove the process that reach at end
