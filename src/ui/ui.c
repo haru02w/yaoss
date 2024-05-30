@@ -31,10 +31,12 @@ void run_curses()
     ui_footer_render(&ui_footer);
 
     clock_t it_clock = clock();
+    bool next_instr = false;
     while (true) {
         // Check if it's time to run the next kernel operation
-        if ((((double)(clock() - it_clock)) / CLOCKS_PER_SEC) >= ut
-            && !paused) {
+        if (((((double)(clock() - it_clock)) / CLOCKS_PER_SEC) >= ut && !paused)
+            || next_instr) {
+            next_instr = false;
             ++time_elapsed;
             it_clock = clock();
             kernel_run();
@@ -52,6 +54,12 @@ void run_curses()
         ui_process_render(&ui_process);
         ui_details_render(&ui_details);
         switch (getch()) {
+        case 'n':
+            next_instr = true;
+            break;
+        case 's':
+            // TODO: skip instruction
+            break;
         case KEY_DOWN:
             // scroll down
             if (ui_process.highlight + 1 < (int)ui_process.proc_info.length)
@@ -76,8 +84,6 @@ void run_curses()
             paused = !paused;
             break;
         case 'c':
-            // create process
-            // TODO: create_process(path) and create panel
             echo();
             syscall(PROCESS_CREATE, ui_footer_ask_path(&ui_footer));
             noecho();
