@@ -80,6 +80,7 @@ void program_init(const char *path)
             continue;
 
         instruction_t *inst_aux = inst_read(buffer);
+        inst_aux->show_opcode = inst_aux->op;
         rtime = rtime + inst_aux->value;
         vector_push_back(&code, inst_aux);
         free(inst_aux);

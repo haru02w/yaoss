@@ -42,7 +42,7 @@ void get_proc_info(struct vector *proc_info)
             .time_elapsed_ut = process->maximum_time - process->remaining_time,
         };
 
-        instruction_to_string(info.operation, instruction->op);
+        instruction_to_string(info.operation, instruction->show_opcode);
         snprintf(info.operation_value, sizeof info.operation_value, "%ld",
             instruction->value);
 

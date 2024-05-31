@@ -50,5 +50,5 @@ void segment_table_destroy(struct segment_table *seg_table);
 instruction_t *segment_fetch_instruction(
     struct segment_table *table, size_t seg_id, size_t pc);
 
-void mem_load_request(
+bool mem_load_request(
     struct segment_table *seg_table, struct memory_request *request);

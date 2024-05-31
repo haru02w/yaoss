@@ -9,6 +9,9 @@ typedef struct instruction {
     // Opcode of instruction
     opcode_t op;
 
+    // Opcode to show
+    opcode_t show_opcode;
+
     // Time necessary for executing an instruction
     size_t value;
 

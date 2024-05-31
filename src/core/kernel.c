@@ -45,8 +45,9 @@ static void process_finish(void *extra_data)
 
 static void mem_load_req(void *extra_data)
 {
-    mem_load_request(&kernel.seg_table, (struct memory_request *)extra_data);
-    interrupt_control(MEM_LOAD_FINISH, extra_data);
+    if (mem_load_request(
+            &kernel.seg_table, (struct memory_request *)extra_data))
+        interrupt_control(MEM_LOAD_FINISH, extra_data);
 }
 
 static void mem_load_finish(void *extra_data)
@@ -109,9 +110,14 @@ static void exec_instruction(
 
     switch (instruction->op) {
         struct semaphore *semaphore;
+        int blocked;
     case READ:
     case WRITE:
     case PRINT:
+        blocked = 0;
+        syscall(PROCESS_INTERRUPT, &blocked);
+        instruction->op = EXEC;
+        break;
     case EXEC:
         if (instruction->value > max_exec_time) {
             instruction->value -= max_exec_time;
@@ -124,23 +130,14 @@ static void exec_instruction(
             process->pc++;
         }
         break;
-    case P:;
+    case P:
         semaphore = semaphore_find(&kernel.semaphore_table, instruction->sem);
         if (semaphore->handler_pid != (int)process->pid)
             syscall(SEMAPHORE_P, semaphore);
 
-        if (instruction->value > max_exec_time) {
-            if (process->status != BLOCKED) {
-                instruction->value -= max_exec_time;
-                process->remaining_time -= max_exec_time;
-                kernel.cur_process_time += max_exec_time;
-            }
+        if (process->status != BLOCKED) {
+            instruction->op = EXEC;
         } else {
-            if (process->status != BLOCKED) {
-                process->remaining_time -= instruction->value;
-                kernel.cur_process_time += instruction->value;
-                instruction->value = 0;
-            }
             process->pc++;
         }
         break;
@@ -148,16 +145,7 @@ static void exec_instruction(
         semaphore = semaphore_find(&kernel.semaphore_table, instruction->sem);
         if (semaphore->handler_pid == (int)process->pid)
             syscall(SEMAPHORE_V, semaphore);
-        if (instruction->value > max_exec_time) {
-            instruction->value -= max_exec_time;
-            process->remaining_time -= max_exec_time;
-            kernel.cur_process_time += max_exec_time;
-        } else {
-            process->remaining_time -= instruction->value;
-            kernel.cur_process_time += instruction->value;
-            instruction->value = 0;
-            process->pc++;
-        }
+        instruction->op = EXEC;
         break;
     default:;
     }

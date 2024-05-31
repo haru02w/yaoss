@@ -120,7 +120,49 @@ struct segment segment_create(pdata_t *process)
     return new_segment;
 }
 
-static void segment_fill(struct segment *seg, struct vector *instruction_list)
+static size_t free_unused_pages(
+    struct segment_table *seg_table, size_t required_memory)
+{
+    size_t freed_memory = 0;
+
+    for (size_t i = 0; i < seg_table->table.length; i++) {
+        struct segment *seg = vector_get(&seg_table->table, i);
+
+        if (seg->resident_set_size == 1)
+            continue;
+
+        for (size_t j = 0; j < seg->resident_set_size; j++) {
+            struct page *page = seg->resident_set[j];
+
+            if (page->used_bit == 0) {
+                page->on_disk = 1;
+                freed_memory += PAGE_SIZE;
+                seg->resident_set[j] = NULL;
+
+                if (freed_memory >= required_memory) {
+                    break;
+                }
+            }
+        }
+
+        size_t new_size = 0;
+        for (size_t j = 0; j < seg->resident_set_size; j++) {
+            if (seg->resident_set[j] != NULL) {
+                seg->resident_set[new_size++] = seg->resident_set[j];
+            }
+        }
+        seg->resident_set_size = new_size;
+        seg->swap_page_id = 0;
+        if (freed_memory >= required_memory) {
+            break;
+        }
+    }
+
+    return freed_memory;
+}
+
+static bool segment_fill(struct segment_table *seg_table, struct segment *seg,
+    struct vector *instruction_list)
 {
     size_t total_instructions = instruction_list->length;
     size_t remaining_instructions = total_instructions;
@@ -130,6 +172,16 @@ static void segment_fill(struct segment *seg, struct vector *instruction_list)
 
     if (max_page > pages_needed) {
         max_page = pages_needed;
+    }
+
+    seg->segment_size = max_page * PAGE_SIZE;
+
+    if (seg->segment_size > seg_table->remaining_memory) {
+        seg_table->remaining_memory += free_unused_pages(
+            seg_table, seg->segment_size - seg_table->remaining_memory);
+        if (seg_table->remaining_memory < seg->segment_size) {
+            return false;
+        }
     }
 
     seg->page_table_size = pages_needed;
@@ -170,7 +222,7 @@ static void segment_fill(struct segment *seg, struct vector *instruction_list)
         }
     }
 
-    seg->segment_size = max_page * PAGE_SIZE;
+    return true;
 }
 
 static void mem_page_swap(struct segment *seg, struct page *new_page)
@@ -217,7 +269,7 @@ static size_t segment_generate_id(struct segment_table *seg_table)
     return last_seg->id + 1;
 }
 
-void mem_load_request(
+bool mem_load_request(
     struct segment_table *seg_table, struct memory_request *request)
 {
     if (seg_table->table.length > 0
@@ -227,7 +279,12 @@ void mem_load_request(
 
     struct segment seg = segment_create(request->process);
 
-    segment_fill(&seg, request->instruction_list);
+    if (!segment_fill(seg_table, &seg, request->instruction_list)) {
+        return false;
+    }
+
     segment_table_add(seg_table, &seg);
     seg_table->remaining_memory -= seg.segment_size;
+    request->process->seg_size = seg.segment_size / KILOBYTE;
+    return true;
 }
