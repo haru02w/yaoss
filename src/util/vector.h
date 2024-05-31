@@ -22,3 +22,5 @@ void vector_pop_back(struct vector *vec);
 void vector_remove(struct vector *vec, size_t index);
 
 void *vector_get(struct vector *vec, size_t index);
+
+void vector_sort(struct vector *vec, int (*compar)(const void *, const void *));

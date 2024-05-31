@@ -16,7 +16,7 @@ enum event_code {
     SEMAPHORE_V
 };
 
-enum run_mode { DEFAULT, INSTRUCTION, REWIND };
+enum run_mode { DEFAULT, SKIP };
 
 struct kernel {
     struct vector process_table;

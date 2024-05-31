@@ -3,7 +3,6 @@
 
 #define TIME_PER_CALL 1
 
-// TODO: move
 struct kernel kernel;
 
 static void process_interrupt(void *extra_data)
@@ -95,10 +94,17 @@ void semaphore_add(const char *semaphore)
 
 // TODO: read, write, print (works like exec for now) (change for a function
 // pointer array)
-static void exec_instruction(pdata_t *process, instruction_t *instruction)
+static void exec_instruction(
+    pdata_t *process, instruction_t *instruction, enum run_mode mode)
 {
-    unsigned int max_exec_time
-        = fmin(process->quantum_time - kernel.cur_process_time, TIME_PER_CALL);
+    unsigned int max_exec_time;
+
+    if (mode == DEFAULT) {
+        max_exec_time = fmin(
+            process->quantum_time - kernel.cur_process_time, TIME_PER_CALL);
+    } else {
+        max_exec_time = process->quantum_time - kernel.cur_process_time;
+    }
 
     switch (instruction->op) {
     case READ:
@@ -145,7 +151,7 @@ void kernel_run()
         return;
 
     if (kernel.cur_process_time >= process->quantum_time) {
-        if (kernel.scheduler.ready_queue->size == 1) {
+        if (kernel.scheduler.ready_queue->size == 0) {
             kernel.cur_process_time = 0;
             return;
         }
@@ -157,7 +163,7 @@ void kernel_run()
     instruction_t *instruction = segment_fetch_instruction(
         &kernel.seg_table, process->seg_id, process->pc);
 
-    exec_instruction(process, instruction);
+    exec_instruction(process, instruction, DEFAULT);
 
     if (process->remaining_time == 0 || process->pc == process->code_size) {
         syscall(PROCESS_FINISH, process);

@@ -52,3 +52,8 @@ void *vector_get(struct vector *vec, size_t index)
 {
     return &vec->data[index * vec->data_size];
 }
+
+void vector_sort(struct vector *vec, int (*compar)(const void *, const void *))
+{
+    qsort(vec->data, vec->length, vec->data_size, compar);
+}

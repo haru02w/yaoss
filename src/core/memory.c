@@ -9,10 +9,18 @@ void segment_table_init(struct segment_table *seg_table)
     seg_table->remaining_memory = MAX_MEMORY_SIZE;
 }
 
+static int segment_compare(const void *a, const void *b)
+{
+    struct segment seg_1 = *(struct segment *)a;
+    struct segment seg_2 = *(struct segment *)b;
+    return seg_1.id - seg_2.id;
+}
+
 static inline void segment_table_add(
     struct segment_table *seg_table, struct segment *seg)
 {
     vector_push_back(&seg_table->table, seg);
+    vector_sort(&seg_table->table, segment_compare);
 }
 
 size_t segment_table_search(struct segment_table *seg_table, size_t seg_id)
@@ -27,6 +35,16 @@ size_t segment_table_search(struct segment_table *seg_table, size_t seg_id)
     }
 
     return 0;
+}
+
+static bool segment_table_exists(struct segment_table *seg_table, size_t seg_id)
+{
+    if (bsearch(&seg_id, seg_table->table.data, seg_table->table.length,
+            sizeof(struct segment), segment_compare)
+        == NULL) {
+        return false;
+    }
+    return true;
 }
 
 static struct page *segment_page_search(struct segment *seg, size_t page_id)
@@ -110,6 +128,10 @@ static void segment_fill(struct segment *seg, struct vector *instruction_list)
     size_t pages_needed
         = ceil((double)total_instructions / MAX_PAGE_INSTRUCTION);
 
+    if (max_page > pages_needed) {
+        max_page = pages_needed;
+    }
+
     seg->page_table_size = pages_needed;
     seg->resident_set_size = max_page;
     seg->resident_set = malloc(sizeof(struct page *) * seg->resident_set_size);
@@ -147,6 +169,8 @@ static void segment_fill(struct segment *seg, struct vector *instruction_list)
             seg->resident_set[i]->on_disk = 0;
         }
     }
+
+    seg->segment_size = max_page * PAGE_SIZE;
 }
 
 static void mem_page_swap(struct segment *seg, struct page *new_page)
@@ -168,8 +192,8 @@ static void mem_page_swap(struct segment *seg, struct page *new_page)
 instruction_t *segment_fetch_instruction(
     struct segment_table *table, size_t seg_id, size_t pc)
 {
-    struct segment *found_segment
-        = vector_get(&table->table, segment_table_search(table, seg_id));
+    struct segment *found_segment = bsearch(&seg_id, table->table.data,
+        table->table.length, sizeof *found_segment, segment_compare);
     size_t page_id_nedeed = floor((double)pc / MAX_PAGE_INSTRUCTION);
 
     struct page *page_found
@@ -185,13 +209,25 @@ instruction_t *segment_fetch_instruction(
     return &page_found->code[pc % MAX_PAGE_INSTRUCTION];
 }
 
+static size_t segment_generate_id(struct segment_table *seg_table)
+{
+    struct segment *last_seg
+        = vector_get(&seg_table->table, seg_table->table.length - 1);
+
+    return last_seg->id + 1;
+}
+
 void mem_load_request(
     struct segment_table *seg_table, struct memory_request *request)
 {
-    struct segment seg = segment_create(request->process);
+    if (seg_table->table.length > 0
+        && segment_table_exists(seg_table, request->process->seg_id)) {
+        request->process->seg_id = segment_generate_id(seg_table);
+    }
 
-    seg_table->remaining_memory -= seg.segment_size;
+    struct segment seg = segment_create(request->process);
 
     segment_fill(&seg, request->instruction_list);
     segment_table_add(seg_table, &seg);
+    seg_table->remaining_memory -= seg.segment_size;
 }
