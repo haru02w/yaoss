@@ -1,3 +1,4 @@
+#include "curses.h"
 #include "kernel_acess.h"
 #include <math.h>
 
@@ -107,6 +108,7 @@ static void exec_instruction(
     }
 
     switch (instruction->op) {
+        struct semaphore *semaphore;
     case READ:
     case WRITE:
     case PRINT:
@@ -122,21 +124,40 @@ static void exec_instruction(
             process->pc++;
         }
         break;
-    case P:
-        syscall(SEMAPHORE_P,
-            semaphore_find(&kernel.semaphore_table, instruction->sem));
-        if (process->status != BLOCKED) {
-            process->remaining_time -= 200;
-            kernel.cur_process_time += max_exec_time;
+    case P:;
+        semaphore = semaphore_find(&kernel.semaphore_table, instruction->sem);
+        if (semaphore->handler_pid != (int)process->pid)
+            syscall(SEMAPHORE_P, semaphore);
+
+        if (instruction->value > max_exec_time) {
+            if (process->status != BLOCKED) {
+                instruction->value -= max_exec_time;
+                process->remaining_time -= max_exec_time;
+                kernel.cur_process_time += max_exec_time;
+            }
+        } else {
+            if (process->status != BLOCKED) {
+                process->remaining_time -= instruction->value;
+                kernel.cur_process_time += instruction->value;
+                instruction->value = 0;
+            }
+            process->pc++;
         }
-        process->pc++;
         break;
     case V:
-        syscall(SEMAPHORE_V,
-            semaphore_find(&kernel.semaphore_table, instruction->sem));
-        process->remaining_time -= 200;
-        kernel.cur_process_time += max_exec_time;
-        process->pc++;
+        semaphore = semaphore_find(&kernel.semaphore_table, instruction->sem);
+        if (semaphore->handler_pid == (int)process->pid)
+            syscall(SEMAPHORE_V, semaphore);
+        if (instruction->value > max_exec_time) {
+            instruction->value -= max_exec_time;
+            process->remaining_time -= max_exec_time;
+            kernel.cur_process_time += max_exec_time;
+        } else {
+            process->remaining_time -= instruction->value;
+            kernel.cur_process_time += instruction->value;
+            instruction->value = 0;
+            process->pc++;
+        }
         break;
     default:;
     }

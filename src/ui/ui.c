@@ -10,6 +10,12 @@
 #include <stdint.h>
 #include <time.h>
 
+#define UT_CHANGE_INITIAL 0.0001
+#define UT_MIN 0.001
+
+#define TIME_ELAPSED(clk) (((double)(clock() - clk)) / CLOCKS_PER_SEC)
+#define UT_CHANGE_ACELERATION 1.011
+
 void ui_create_stdscr();
 void ui_destroy_stdscr();
 
@@ -18,8 +24,8 @@ bool paused = true;
 
 void run_curses()
 {
-    double ut = 0.001;
-    double ut_change = ut * 0.1;
+    double ut = UT_MIN;
+    double ut_change = UT_CHANGE_INITIAL;
 
     ui_create_stdscr();
     struct ui_header ui_header = ui_create_header(stdscr);
@@ -31,16 +37,19 @@ void run_curses()
     ui_footer_render(&ui_footer);
 
     clock_t it_clock = clock();
+    clock_t last_speed_change = clock();
     bool next_instr = false;
     while (true) {
         // Check if it's time to run the next kernel operation
-        if (((((double)(clock() - it_clock)) / CLOCKS_PER_SEC) >= ut && !paused)
-            || next_instr) {
+        if ((TIME_ELAPSED(it_clock) >= ut && !paused) || next_instr) {
             next_instr = false;
             ++time_elapsed;
             it_clock = clock();
             kernel_run();
         }
+
+        if (TIME_ELAPSED(last_speed_change) > 0.7)
+            ut_change = UT_CHANGE_INITIAL;
 
         get_proc_info(&ui_process.proc_info);
         get_sem_info(&ui_details.sem_info, ui_process.highlight);
@@ -72,12 +81,22 @@ void run_curses()
             break;
         case '+':
             // increase time per ut
+            last_speed_change = clock();
+            ut_change *= UT_CHANGE_ACELERATION;
             ut += ut_change;
             break;
         case '-':
             // decrease time per ut
-            if (ut - ut_change >= 0)
+            last_speed_change = clock();
+            if (ut - ut_change >= UT_MIN) {
+                ut_change *= UT_CHANGE_ACELERATION;
                 ut -= ut_change;
+            } else {
+                ut = UT_MIN;
+            }
+            break;
+        case '0':
+            ut = UT_MIN;
             break;
         case ' ':
             // toggle pause
