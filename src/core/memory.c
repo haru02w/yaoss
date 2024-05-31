@@ -1,14 +1,29 @@
+/**
+ * @file memory.c
+ * @brief Implementation of memory management functions for the kernel.
+ */
+
 #include "memory.h"
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 
+/**
+ * @brief Initializes the segment table.
+ * @param seg_table Pointer to the segment table to initialize.
+ */
 void segment_table_init(struct segment_table *seg_table)
 {
     seg_table->table = vector_create(sizeof(struct segment));
     seg_table->remaining_memory = MAX_MEMORY_SIZE;
 }
 
+/**
+ * @brief Compares two segments based on their IDs.
+ * @param a Pointer to the first segment.
+ * @param b Pointer to the second segment.
+ * @return Difference between the segment IDs.
+ */
 static int segment_compare(const void *a, const void *b)
 {
     struct segment seg_1 = *(struct segment *)a;
@@ -16,6 +31,11 @@ static int segment_compare(const void *a, const void *b)
     return seg_1.id - seg_2.id;
 }
 
+/**
+ * @brief Adds a segment to the segment table and sorts the table.
+ * @param seg_table Pointer to the segment table.
+ * @param seg Pointer to the segment to add.
+ */
 static inline void segment_table_add(
     struct segment_table *seg_table, struct segment *seg)
 {
@@ -23,6 +43,12 @@ static inline void segment_table_add(
     vector_sort(&seg_table->table, segment_compare);
 }
 
+/**
+ * @brief Searches for a segment in the segment table by its ID.
+ * @param seg_table Pointer to the segment table.
+ * @param seg_id ID of the segment to search for.
+ * @return Index of the segment if found, 0 otherwise.
+ */
 size_t segment_table_search(struct segment_table *seg_table, size_t seg_id)
 {
     for (size_t i = 0; i < seg_table->table.length; i++) {
@@ -37,16 +63,25 @@ size_t segment_table_search(struct segment_table *seg_table, size_t seg_id)
     return 0;
 }
 
+/**
+ * @brief Checks if a segment exists in the segment table by its ID.
+ * @param seg_table Pointer to the segment table.
+ * @param seg_id ID of the segment to check.
+ * @return true if the segment exists, false otherwise.
+ */
 static bool segment_table_exists(struct segment_table *seg_table, size_t seg_id)
 {
-    if (bsearch(&seg_id, seg_table->table.data, seg_table->table.length,
-            sizeof(struct segment), segment_compare)
-        == NULL) {
-        return false;
-    }
-    return true;
+    return bsearch(&seg_id, seg_table->table.data, seg_table->table.length,
+               sizeof(struct segment), segment_compare)
+        != NULL;
 }
 
+/**
+ * @brief Searches for a page in the segment by its ID.
+ * @param seg Pointer to the segment.
+ * @param page_id ID of the page to search for.
+ * @return Pointer to the page if found, NULL otherwise.
+ */
 static struct page *segment_page_search(struct segment *seg, size_t page_id)
 {
     for (size_t i = 0; i < seg->page_table_size; i++) {
@@ -60,6 +95,12 @@ static struct page *segment_page_search(struct segment *seg, size_t page_id)
     return NULL;
 }
 
+/**
+ * @brief Searches for a resident page in the segment by its ID.
+ * @param seg Pointer to the segment.
+ * @param page_id ID of the resident page to search for.
+ * @return Pointer to the resident page if found, NULL otherwise.
+ */
 static struct page *segment_resident_search(struct segment *seg, size_t page_id)
 {
     for (size_t i = 0; i < seg->resident_set_size; i++) {
@@ -73,6 +114,11 @@ static struct page *segment_resident_search(struct segment *seg, size_t page_id)
     return NULL;
 }
 
+/**
+ * @brief Removes a segment from the segment table by its ID.
+ * @param seg_table Pointer to the segment table.
+ * @param seg_id ID of the segment to remove.
+ */
 void segment_table_remove(struct segment_table *seg_table, size_t seg_id)
 {
     size_t seg_table_id = segment_table_search(seg_table, seg_id);
@@ -95,6 +141,10 @@ void segment_table_remove(struct segment_table *seg_table, size_t seg_id)
     vector_remove(&seg_table->table, seg_table_id);
 }
 
+/**
+ * @brief Destroys the segment table and frees all associated memory.
+ * @param seg_table Pointer to the segment table.
+ */
 void segment_table_destroy(struct segment_table *seg_table)
 {
     for (size_t i = 0; i < seg_table->table.length; i++) {
@@ -105,6 +155,11 @@ void segment_table_destroy(struct segment_table *seg_table)
     vector_destroy(&seg_table->table);
 }
 
+/**
+ * @brief Creates a new segment for a given process.
+ * @param process Pointer to the process.
+ * @return The newly created segment.
+ */
 struct segment segment_create(pdata_t *process)
 {
     struct segment new_segment;
@@ -120,6 +175,12 @@ struct segment segment_create(pdata_t *process)
     return new_segment;
 }
 
+/**
+ * @brief Frees unused pages in the segment table to meet memory requirements.
+ * @param seg_table Pointer to the segment table.
+ * @param required_memory Amount of memory required to be freed.
+ * @return Amount of memory freed.
+ */
 static size_t free_unused_pages(
     struct segment_table *seg_table, size_t required_memory)
 {
@@ -161,6 +222,13 @@ static size_t free_unused_pages(
     return freed_memory;
 }
 
+/**
+ * @brief Fills a segment with instructions and allocates pages.
+ * @param seg_table Pointer to the segment table.
+ * @param seg Pointer to the segment to fill.
+ * @param instruction_list Pointer to the list of instructions.
+ * @return true if the segment was filled successfully, false otherwise.
+ */
 static bool segment_fill(struct segment_table *seg_table, struct segment *seg,
     struct vector *instruction_list)
 {
@@ -225,6 +293,11 @@ static bool segment_fill(struct segment_table *seg_table, struct segment *seg,
     return true;
 }
 
+/**
+ * @brief Swaps a page into memory from the disk.
+ * @param seg Pointer to the segment.
+ * @param new_page Pointer to the new page to swap in.
+ */
 static void mem_page_swap(struct segment *seg, struct page *new_page)
 {
     struct page *cur_page = seg->resident_set[seg->swap_page_id];
@@ -241,6 +314,13 @@ static void mem_page_swap(struct segment *seg, struct page *new_page)
     seg->swap_page_id = (seg->swap_page_id + 1) % seg->resident_set_size;
 }
 
+/**
+ * @brief Fetches an instruction from a segment by its program counter.
+ * @param table Pointer to the segment table.
+ * @param seg_id ID of the segment.
+ * @param pc Program counter value.
+ * @return Pointer to the instruction.
+ */
 instruction_t *segment_fetch_instruction(
     struct segment_table *table, size_t seg_id, size_t pc)
 {
@@ -261,6 +341,11 @@ instruction_t *segment_fetch_instruction(
     return &page_found->code[pc % MAX_PAGE_INSTRUCTION];
 }
 
+/**
+ * @brief Generates a new unique segment ID.
+ * @param seg_table Pointer to the segment table.
+ * @return New segment ID.
+ */
 static size_t segment_generate_id(struct segment_table *seg_table)
 {
     struct segment *last_seg
@@ -269,6 +354,12 @@ static size_t segment_generate_id(struct segment_table *seg_table)
     return last_seg->id + 1;
 }
 
+/**
+ * @brief Handles a memory load request for a process.
+ * @param seg_table Pointer to the segment table.
+ * @param request Pointer to the memory request.
+ * @return true if the memory load request was successful, false otherwise.
+ */
 bool mem_load_request(
     struct segment_table *seg_table, struct memory_request *request)
 {
