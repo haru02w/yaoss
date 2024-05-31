@@ -327,7 +327,8 @@ void kernel_shutdown()
  */
 pdata_t *kernel_get_process(size_t pid)
 {
-    if (kernel.process_table.length == 0)
+    if (kernel.process_table.length == 0
+        || pid - 1 >= kernel.process_table.length)
         return NULL;
 
     return *(pdata_t **)vector_get(&kernel.process_table, pid - 1);
