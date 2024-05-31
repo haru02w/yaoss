@@ -66,9 +66,6 @@ void run_curses()
         case 'n':
             next_instr = true;
             break;
-        case 's':
-            // TODO: skip instruction
-            break;
         case KEY_DOWN:
             // scroll down
             if (ui_process.highlight + 1 < (int)ui_process.proc_info.length)
