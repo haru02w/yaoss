@@ -51,3 +51,5 @@ void semaphore_P(struct semaphore *sem, pdata_t *proc);
  * @param sem Pointer to the semaphore.
  */
 void semaphore_V(struct semaphore *sem);
+
+void semaphore_table_destroy(struct vector *sem_table);

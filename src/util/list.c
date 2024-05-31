@@ -84,7 +84,8 @@ struct list_node *list_search(struct list *list, void *key)
 
 void list_destroy(struct list *list)
 {
-    assert(list != NULL);
+    if (list == NULL)
+        return;
 
     struct list_node *cur_node = list->head;
     struct list_node *tmp_node;

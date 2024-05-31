@@ -8,6 +8,7 @@
 #include "../process/semaphore.h"
 #include "memory.h"
 #include "scheduler.h"
+#include <pthread.h>
 
 /**
  * @enum event_code
@@ -39,6 +40,10 @@ struct kernel {
     struct sched scheduler;
     struct vector semaphore_table;
     unsigned cur_process_time;
+    pthread_t event_thread;
+    bool event_thread_running;
+    enum event_code cur_event;
+    void *cur_data;
 };
 
 /**

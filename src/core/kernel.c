@@ -12,6 +12,9 @@
 /// Kernel structure instance
 struct kernel kernel;
 
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+
 /**
  * @brief Handles process interrupts.
  *
@@ -113,6 +116,22 @@ static void semaphore_v(void *extra_data)
 void (*kernel_event[])(void *) = { process_interrupt, process_create,
     process_finish, mem_load_req, mem_load_finish, semaphore_p, semaphore_v };
 
+void *event_handler(void *args)
+{
+    while (true) {
+        pthread_mutex_lock(&mutex);
+        while (!kernel.event_thread_running) {
+            pthread_cond_wait(&cond, &mutex);
+        }
+
+        kernel_event[kernel.cur_event](kernel.cur_data);
+        kernel.event_thread_running = false;
+        pthread_cond_signal(&cond);
+        pthread_mutex_unlock(&mutex);
+    }
+    return NULL;
+}
+
 /**
  * @brief Initializes the kernel.
  */
@@ -122,6 +141,10 @@ void kernel_init()
     segment_table_init(&kernel.seg_table);
     scheduler_init(&kernel.scheduler);
     kernel.semaphore_table = semaphore_table_init();
+    kernel.event_thread_running = false;
+    kernel.cur_event = 0;
+    kernel.cur_data = NULL;
+    pthread_create(&kernel.event_thread, NULL, event_handler, NULL);
 }
 
 /**
@@ -132,7 +155,18 @@ void kernel_init()
  */
 void syscall(enum event_code syscall_code, void *extra_data)
 {
-    kernel_event[syscall_code](extra_data);
+    if (!kernel.event_thread_running) {
+        pthread_mutex_lock(&mutex);
+        kernel.cur_event = syscall_code;
+        kernel.cur_data = extra_data;
+        kernel.event_thread_running = true;
+        pthread_cond_signal(&cond);
+        pthread_cond_wait(&cond, &mutex);
+        pthread_mutex_unlock(&mutex);
+    } else {
+        kernel_event[syscall_code](extra_data);
+    }
+    kernel.cur_data = NULL;
 }
 
 /**
@@ -143,7 +177,18 @@ void syscall(enum event_code syscall_code, void *extra_data)
  */
 void interrupt_control(enum event_code interrupt_code, void *extra_data)
 {
-    kernel_event[interrupt_code](extra_data);
+    if (!kernel.event_thread_running) {
+        pthread_mutex_lock(&mutex);
+        kernel.cur_event = interrupt_code;
+        kernel.cur_data = extra_data;
+        kernel.event_thread_running = true;
+        pthread_cond_signal(&cond);
+        pthread_cond_wait(&cond, &mutex);
+        pthread_mutex_unlock(&mutex);
+    } else {
+        kernel_event[interrupt_code](extra_data);
+    }
+    kernel.cur_data = NULL;
 }
 
 /**
@@ -176,8 +221,8 @@ static void exec_instruction(
     }
 
     switch (instruction->op) {
-        struct semaphore *semaphore;
         int blocked;
+        struct semaphore *semaphore;
     case READ:
     case WRITE:
     case PRINT:
@@ -269,8 +314,9 @@ void kernel_shutdown()
 
     vector_destroy(&kernel.process_table);
     segment_table_destroy(&kernel.seg_table);
-    // TODO: scheduler_destroy()
-    // TODO: semaphore_table_destroy()
+    pthread_cancel(kernel.event_thread);
+    scheduler_destroy(&kernel.scheduler);
+    semaphore_table_destroy(&kernel.semaphore_table);
 }
 
 /**

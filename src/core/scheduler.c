@@ -133,3 +133,10 @@ void sched_remove(struct sched *sched)
     sched->atual->status = TERMINATED;
     sched->atual = NULL;
 }
+
+void scheduler_destroy(struct sched *sched)
+{
+    list_destroy(sched->ready_queue);
+    list_destroy(sched->blocked_list);
+    sched->atual = NULL;
+}
