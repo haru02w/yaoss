@@ -16,7 +16,7 @@ set(CMAKE_BUILD_TYPE Debug)
 # set flags to compiler
 # set(CMAKE_CXX_FLAGS ...)
 set(CMAKE_C_FLAGS
-  "${CMAKE_C_FLAGS} -Wall -Wextra -Wuninitialized")
+  "${CMAKE_C_FLAGS} -Wall -Wextra -Wuninitialized -g")
 
 # Ensure the build and source directory exists
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR})

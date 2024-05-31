@@ -4,5 +4,7 @@ in mainPkg.overrideAttrs (oa: {
   nativeBuildInputs = with pkgs;
     [
       ncurses
+      valgrind
+      gdb
     ] ++ (oa.nativeBuildInputs or [ ]);
 })

@@ -1,5 +1,6 @@
 #include "core2ui.h"
 #include "core/kernel_acess.h"
+#include "core/memory.h"
 #include "util/vector.h"
 #include <assert.h>
 #include <stdint.h>
@@ -10,8 +11,8 @@
 
 void get_simulation_info(struct sim_info *sim_info)
 {
-    sim_info->memory_usage_mb
-        = (MAX_MEMORY_SIZE - kernel.seg_table.remaining_memory) / MEGABYTE;
+    sim_info->memory_usage_kb
+        = (MAX_MEMORY_SIZE - kernel.seg_table.remaining_memory) / KILOBYTE;
 }
 
 void get_proc_info(struct vector *proc_info)
@@ -42,7 +43,8 @@ void get_proc_info(struct vector *proc_info)
         };
 
         instruction_to_string(info.operation, instruction->op);
-        sprintf(info.operation_value, "%ld", instruction->value);
+        snprintf(info.operation_value, sizeof info.operation_value, "%ld",
+            instruction->value);
 
         memcpy(&proc_info->data[i * sizeof(struct process_info)], &info,
             sizeof(struct process_info));

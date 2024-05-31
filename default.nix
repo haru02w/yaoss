@@ -6,7 +6,7 @@ stdenv.mkDerivation {
   src = lib.sourceByRegex ./. [ "^src.*" "^test.*" "CMakeLists.txt" ];
 
   # packages at compilationtime
-  nativeBuildInputs = with pkgs; [ cmake ncurses ];
+  nativeBuildInputs = with pkgs; [ cmake ncurses valgrind gdb ];
   # packages at testing
   checkInputs = [ ];
   # packages at run time

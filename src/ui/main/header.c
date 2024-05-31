@@ -19,18 +19,18 @@ void ui_render_header(
     get_simulation_info(&info);
 
     // only redraw if needed
-    if (info.memory_usage_mb != prev_info.memory_usage_mb) {
+    if (info.memory_usage_kb != prev_info.memory_usage_kb) {
         werase(main_header->win);
-        mvwprintw(main_header->win, 0, 0, " memory usage: %lu/1024MB",
-            info.memory_usage_mb);
-        prev_info.memory_usage_mb = info.memory_usage_mb;
+        mvwprintw(main_header->win, 0, 0, " memory usage: %lu/%dKB",
+            info.memory_usage_kb, 1024 * 1024);
+        prev_info.memory_usage_kb = info.memory_usage_kb;
     }
 
     // CLOCK
     char s0[128], s1[128];
     int col = getmaxx(main_header->win);
     sprintf(s0, "UT: %1.5lf", ut);
-    sprintf(s1, "Time elapsed: %lukUT", time_elapsed / 1000);
+    sprintf(s1, "Time elapsed: %luUT", time_elapsed);
     wmove(main_header->win, 0, (col - strlen(s0) - strlen(s1)));
     wclrtoeol(main_header->win);
     mvwprintw(main_header->win, 0, (col - strlen(s0) - strlen(s1) - 1), "%s %s",
