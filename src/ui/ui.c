@@ -52,12 +52,14 @@ void run_curses()
             ut_change = UT_CHANGE_INITIAL;
 
         get_proc_info(&ui_process.proc_info);
-        get_sem_info(&ui_details.sem_info, ui_process.highlight);
-        get_page_info(&ui_details.page_info, ui_process.highlight);
 
         // Fix last option of menu if length changes
-        if (ui_process.highlight > (int)ui_process.proc_info.length)
-            ui_process.highlight = ui_process.proc_info.length;
+        if (ui_process.proc_info.length != 0
+            && ui_process.highlight > (int)ui_process.proc_info.length - 1)
+            ui_process.highlight = ui_process.proc_info.length - 1;
+
+        get_sem_info(&ui_details.sem_info, ui_process.highlight);
+        get_page_info(&ui_details.page_info, ui_process.highlight);
 
         ui_render_header(&ui_header, ut, time_elapsed);
         ui_process_render(&ui_process);
