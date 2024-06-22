@@ -23,6 +23,14 @@ struct process_info {
     char operation_value[7 + 1];
 };
 
+// TODO: all the rest
+struct io_info {
+    uint16_t io_id;
+    int32_t process_id;
+    uint64_t track;
+    bool rw;
+};
+
 struct semaphore_info {
     char *name;
     int32_t working_process_id;

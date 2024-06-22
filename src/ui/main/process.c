@@ -1,24 +1,41 @@
 #include "process.h"
 #include "../../core2ui.h"
 #include "../../util/vector.h"
+#include "../colors.h"
 #include "curses.h"
+#include <string.h>
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 struct ui_process ui_process_create(WINDOW *parent_win)
 {
 
     struct ui_process tmp = {
-        .win = derwin(
-            stdscr, getmaxy(parent_win) - 2, getmaxx(parent_win) * 3 / 5, 1, 0),
+        .win = derwin(stdscr, (getmaxy(parent_win) - 2) * 3 / 5,
+            getmaxx(parent_win) * 3 / 5, 1, 0),
         .menuwin
         = derwin(tmp.win, getmaxy(tmp.win) - 3, getmaxx(tmp.win) - 2, 2, 1),
         .highlight = 0,
         .proc_info = vector_create(sizeof(struct process_info)),
     };
+    wattron(tmp.win, COLOR_PAIR(CP_LINE));
     box(tmp.win, 0, 0);
+    wattroff(tmp.win, COLOR_PAIR(CP_LINE));
+
+    char *title = "Process List";
+    wmove(tmp.win, 0, (getmaxx(tmp.win) - strlen(title) - 2) / 2);
+    wattron(tmp.win, COLOR_PAIR(CP_LINE));
+    waddch(tmp.win, ACS_RTEE);
+    wattroff(tmp.win, COLOR_PAIR(CP_LINE));
+    waddstr(tmp.win, title);
+    wattron(tmp.win, COLOR_PAIR(CP_LINE));
+    waddch(tmp.win, ACS_LTEE);
+    wattroff(tmp.win, COLOR_PAIR(CP_LINE));
+
+    wattron(tmp.win, COLOR_PAIR(CP_TITLE));
     mvwprintw(tmp.win, 1, 1,
         "%3.3s %12.12s %3.3s %c %9.9s %3.3s %6.6s %8.8s %5.5s %7.7s", "PID",
         "NAME", "PRI", 'S', "PC/TOTAL", "SID", "MEM_KB", "TIME", "OP", "OPVAL");
+    wattroff(tmp.win, COLOR_PAIR(CP_TITLE));
     wrefresh(tmp.win);
     return tmp;
 }
@@ -32,8 +49,10 @@ void ui_process_render(struct ui_process *ui_process)
 
     for (size_t i = 0; i < ui_process->proc_info.length; i++) {
         struct process_info *info = vector_get(&ui_process->proc_info, i);
-        if (ui_process->highlight == (int)i)
+        if (ui_process->highlight == (int)i) {
+            wattron(ui_process->menuwin, COLOR_PAIR(CP_LIST_ITEM));
             wattron(ui_process->menuwin, A_REVERSE);
+        }
 
         // Just to not fuck up the menu, i'm using MIN macro
         mvwprintw(ui_process->menuwin, i, 0,
@@ -46,6 +65,7 @@ void ui_process_render(struct ui_process *ui_process)
             MIN(info->time_elapsed_ut, 999999), info->operation,
             info->operation_value);
         wattroff(ui_process->menuwin, A_REVERSE);
+        wattroff(ui_process->menuwin, COLOR_PAIR(CP_LIST_ITEM));
     }
     wrefresh(ui_process->menuwin);
 }

@@ -1,6 +1,8 @@
 #include "details.h"
 #include "../../core2ui.h"
+#include "../colors.h"
 #include "curses.h"
+#include <string.h>
 
 static const char *truestr = "true";
 static const char *falsestr = "false";
@@ -18,22 +20,52 @@ struct ui_details ui_details_create(WINDOW *parent_win)
         .page_info = vector_create(sizeof(struct page_info)),
         .sem_info = vector_create(sizeof(struct semaphore_info)),
     };
+    wattron(tmp.win, COLOR_PAIR(CP_LINE));
     box(tmp.win, 0, 0);
-    // box(tmp.menu_page, 0, 0);
-    // box(tmp.menu_semaphore, 0, 0);
+    wattroff(tmp.win, COLOR_PAIR(CP_LINE));
+
+    // Write semaphore title
+    char *title_sem = "Semaphore List";
+    wmove(tmp.win, 0, ((getmaxx(tmp.win) / 2) - strlen(title_sem) - 2) / 2);
+    wattron(tmp.win, COLOR_PAIR(CP_LINE));
+    waddch(tmp.win, ACS_RTEE);
+    wattroff(tmp.win, COLOR_PAIR(CP_LINE));
+    waddstr(tmp.win, title_sem);
+    wattron(tmp.win, COLOR_PAIR(CP_LINE));
+    waddch(tmp.win, ACS_LTEE);
+    wattroff(tmp.win, COLOR_PAIR(CP_LINE));
+
+    // Write pages title
+    char *title_page = "Pages List";
+    wmove(tmp.win, 0,
+        (getmaxx(tmp.win) / 2)
+            + ((getmaxx(tmp.win) / 2) - strlen(title_sem) - 2) / 2);
+    wattron(tmp.win, COLOR_PAIR(CP_LINE));
+    waddch(tmp.win, ACS_RTEE);
+    wattroff(tmp.win, COLOR_PAIR(CP_LINE));
+    waddstr(tmp.win, title_page);
+    wattron(tmp.win, COLOR_PAIR(CP_LINE));
+    waddch(tmp.win, ACS_LTEE);
+    wattroff(tmp.win, COLOR_PAIR(CP_LINE));
 
     // put a line in the middle
+    wattron(tmp.win, COLOR_PAIR(CP_LINE));
     mvwaddch(tmp.win, 0, getmaxx(tmp.win) / 2, ACS_TTEE);
     for (int i = 1; i < getmaxy(tmp.win) - 1; i++)
         mvwaddch(tmp.win, i, getmaxx(tmp.win) / 2, ACS_VLINE);
     mvwaddch(tmp.win, getmaxy(tmp.win) - 1, getmaxx(tmp.win) / 2, ACS_BTEE);
+    wattroff(tmp.win, COLOR_PAIR(CP_LINE));
 
     // Semaphore table
+    wattron(tmp.win,COLOR_PAIR(CP_TITLE));
     mvwprintw(tmp.win, 1, 1, "%4.4s %4.4s %4.4s", "NAME", "WPID", "WAIT");
+    wattroff(tmp.win,COLOR_PAIR(CP_TITLE));
 
     // Page table
+    wattron(tmp.win,COLOR_PAIR(CP_TITLE));
     mvwprintw(tmp.win, 1, getmaxx(tmp.win) / 2 + 1, "%4.4s %5.5s %6.6s", "PGID",
         "USING", "ONDISK");
+    wattroff(tmp.win,COLOR_PAIR(CP_TITLE));
 
     wrefresh(tmp.win);
     return tmp;

@@ -1,6 +1,7 @@
 #include "ui.h"
 #include "../core/kernel.h"
 #include "../core2ui.h"
+#include "colors.h"
 #include "main/details.h"
 #include "main/footer.h"
 #include "main/header.h"
@@ -130,5 +131,10 @@ void ui_create_stdscr()
     keypad(stdscr, TRUE); // get F1-F12 and arrow keys as well
     nodelay(stdscr, TRUE); // don't block thread when getting input
     curs_set(0); // disable cursor
+    start_color();
+    init_pair(CP_DEFAULT, COLOR_WHITE, COLOR_BLACK);
+    init_pair(CP_LIST_ITEM, COLOR_GREEN, COLOR_BLACK);
+    init_pair(CP_LINE, COLOR_BLUE, COLOR_BLACK);
+    init_pair(CP_TITLE, COLOR_BLACK, COLOR_WHITE);
 }
 void ui_destroy_stdscr() { endwin(); }
