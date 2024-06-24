@@ -46,3 +46,5 @@ void sched_next_process(struct sched *sched);
 /// @brief function that remove the process that reach at end
 /// @param sched scheduler pointer
 void sched_remove(struct sched *sched);
+
+void scheduler_destroy(struct sched *sched);

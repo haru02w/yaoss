@@ -108,3 +108,12 @@ void semaphore_V(struct semaphore *sem)
         sem->handler_pid = -1;
     }
 }
+
+void semaphore_table_destroy(struct vector *sem_table)
+{
+    for (size_t i = 0; i < sem_table->length; i++) {
+        struct semaphore *sem = vector_get(sem_table, i);
+        list_destroy(sem->waiters);
+    }
+    vector_destroy(sem_table);
+}

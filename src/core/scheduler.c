@@ -50,15 +50,15 @@ struct list_node *get_process(struct list *list, size_t pid)
 {
     assert(list->size != 0);
     struct list_node *node = list->head;
-    while (((pdata_t *)(node->data))->pid != pid
-        && list->tail->data == node->data) {
+
+    while (node != NULL) {
+        if (((pdata_t *)(node->data))->pid == pid) {
+            return node;
+        }
         node = node->next;
     }
 
-    if (list->tail->data == node->data && ((pdata_t *)(node->data))->pid != pid)
-        return NULL;
-    else
-        return node;
+    return NULL;
 }
 
 /// @brief function to unlock a blocked process
@@ -71,23 +71,27 @@ void sched_unlock_process(struct sched *sched, size_t pid)
         printf("PID não reconhecido\n");
         return;
     }
+
     if (sched->blocked_list->size == 1) {
-        sched->blocked_list->tail = sched->blocked_list->head = NULL;
-        sched->blocked_list->size = 0;
+        sched->blocked_list->head = sched->blocked_list->tail = NULL;
     } else {
-        if (sched->blocked_list->tail->data == node->data) {
-            sched->blocked_list->tail = node->prev;
-            node->prev->next = NULL;
-        } else if (sched->blocked_list->head->data == node->data) {
+        if (node == sched->blocked_list->head) {
             sched->blocked_list->head = node->next;
-            node->next->prev = NULL;
+            if (sched->blocked_list->head != NULL) {
+                sched->blocked_list->head->prev = NULL;
+            }
+        } else if (node == sched->blocked_list->tail) {
+            sched->blocked_list->tail = node->prev;
+            if (sched->blocked_list->tail != NULL) {
+                sched->blocked_list->tail->next = NULL;
+            }
         } else {
-            node->prev->next = NULL;
-            node->next->prev = NULL;
+            node->prev->next = node->next;
+            node->next->prev = node->prev;
         }
-        node->prev = node->next = NULL;
-        sched->blocked_list->size--;
     }
+
+    sched->blocked_list->size--;
 
     ((pdata_t *)node->data)->status = READY;
     enqueue(sched->ready_queue, node->data);
@@ -131,5 +135,12 @@ void sched_remove(struct sched *sched)
         return;
     }
     sched->atual->status = TERMINATED;
+    sched->atual = NULL;
+}
+
+void scheduler_destroy(struct sched *sched)
+{
+    list_destroy(sched->ready_queue);
+    list_destroy(sched->blocked_list);
     sched->atual = NULL;
 }

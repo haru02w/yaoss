@@ -3,9 +3,10 @@
  * @brief Kernel implementation with process and memory management.
  */
 
-#include "curses.h"
+#include "kernel.h"
 #include "kernel_acess.h"
 #include <math.h>
+#include <stdio.h>
 
 #define TIME_PER_CALL 1
 
@@ -109,9 +110,58 @@ static void semaphore_v(void *extra_data)
     semaphore_V((struct semaphore *)extra_data);
 }
 
+static void disk_read_request(void *extra_data)
+{
+    int blocked = 1;
+    io_disk_submit_request(&kernel.io_module.disk_module,
+        kernel.scheduler.atual, *(size_t *)extra_data, DISK_READ);
+    syscall(PROCESS_INTERRUPT, &blocked);
+}
+
+static void disk_write_request(void *extra_data)
+{
+    int blocked = 1;
+    io_disk_submit_request(&kernel.io_module.disk_module,
+        kernel.scheduler.atual, *(size_t *)extra_data, DISK_WRITE);
+    syscall(PROCESS_INTERRUPT, &blocked);
+}
+
+static void disk_finish(void *extra_data)
+{
+    pdata_t *process = (pdata_t *)extra_data;
+    process->pc++;
+    sched_unlock_process(&kernel.scheduler, process->pid);
+    if (kernel.scheduler.atual == NULL) {
+        int blocked = 0;
+        syscall(PROCESS_INTERRUPT, &blocked);
+    }
+}
+
+// TODO: I/O timer
+static void print_request(void *extra_data)
+{
+    int blocked = 1;
+    io_print_submit_request(&kernel.io_module.print_queue,
+        kernel.scheduler.atual, *(size_t *)extra_data);
+    syscall(PROCESS_INTERRUPT, &blocked);
+}
+
+static void print_finish(void *extra_data)
+{
+    pdata_t *process = (pdata_t *)extra_data;
+    process->pc++;
+    sched_unlock_process(&kernel.scheduler, process->pid);
+    if (kernel.scheduler.atual == NULL) {
+        int blocked = 0;
+        syscall(PROCESS_INTERRUPT, &blocked);
+    }
+}
+
 /// Array of kernel event handlers
-void (*kernel_event[])(void *) = { process_interrupt, process_create,
-    process_finish, mem_load_req, mem_load_finish, semaphore_p, semaphore_v };
+void (*kernel_event[])(void *)
+    = { process_interrupt, process_create, process_finish, mem_load_req,
+          mem_load_finish, semaphore_p, semaphore_v, disk_read_request,
+          disk_write_request, disk_finish, print_request, print_finish };
 
 /**
  * @brief Initializes the kernel.
@@ -122,6 +172,7 @@ void kernel_init()
     segment_table_init(&kernel.seg_table);
     scheduler_init(&kernel.scheduler);
     kernel.semaphore_table = semaphore_table_init();
+    io_module_init(&kernel.io_module);
 }
 
 /**
@@ -163,30 +214,23 @@ void semaphore_add(const char *semaphore)
  * @param instruction Pointer to the instruction data.
  * @param mode The run mode (DEFAULT or other).
  */
-static void exec_instruction(
-    pdata_t *process, instruction_t *instruction, enum run_mode mode)
+static void exec_instruction(pdata_t *process, instruction_t *instruction)
 {
     unsigned int max_exec_time;
 
-    if (mode == DEFAULT) {
-        max_exec_time = fmin(
-            process->quantum_time - kernel.cur_process_time, TIME_PER_CALL);
-    } else {
-        max_exec_time = process->quantum_time - kernel.cur_process_time;
-    }
+    max_exec_time
+        = fmin(process->quantum_time - kernel.cur_process_time, TIME_PER_CALL);
 
     switch (instruction->op) {
         struct semaphore *semaphore;
-        int blocked;
     case READ:
+        syscall(DISK_READ_REQUEST, &instruction->value);
+        break;
     case WRITE:
+        syscall(DISK_WRITE_REQUEST, &instruction->value);
+        break;
     case PRINT:
-        blocked = 0;
-        syscall(PROCESS_INTERRUPT, &blocked);
-        instruction->op = EXEC;
-        instruction->value -= max_exec_time;
-        process->remaining_time -= max_exec_time;
-        kernel.cur_process_time += max_exec_time;
+        syscall(PRINT_REQUEST, &instruction->value);
         break;
     case EXEC:
         if (instruction->value > max_exec_time) {
@@ -234,6 +278,9 @@ void kernel_run()
 {
     pdata_t *process = kernel.scheduler.atual;
 
+    io_disk_schedule(&kernel.io_module.disk_module);
+    io_print_schedule(&kernel.io_module.print_queue, TIME_PER_CALL);
+
     if (process == NULL || process->status == TERMINATED)
         return;
 
@@ -250,9 +297,9 @@ void kernel_run()
     instruction_t *instruction = segment_fetch_instruction(
         &kernel.seg_table, process->seg_id, process->pc);
 
-    exec_instruction(process, instruction, DEFAULT);
+    exec_instruction(process, instruction);
 
-    if (process->remaining_time == 0 || process->pc == process->code_size) {
+    if (process->status != BLOCKED && process->pc == process->code_size) {
         syscall(PROCESS_FINISH, process);
     }
 }
@@ -269,8 +316,9 @@ void kernel_shutdown()
 
     vector_destroy(&kernel.process_table);
     segment_table_destroy(&kernel.seg_table);
-    // TODO: scheduler_destroy()
-    // TODO: semaphore_table_destroy()
+    scheduler_destroy(&kernel.scheduler);
+    semaphore_table_destroy(&kernel.semaphore_table);
+    io_module_destroy(&kernel.io_module);
 }
 
 /**

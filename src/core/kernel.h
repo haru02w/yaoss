@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../process/semaphore.h"
+#include "io.h"
 #include "memory.h"
 #include "scheduler.h"
 
@@ -20,14 +21,13 @@ enum event_code {
     MEM_LOAD_REQ,
     MEM_LOAD_FINISH,
     SEMAPHORE_P,
-    SEMAPHORE_V
+    SEMAPHORE_V,
+    DISK_READ_REQUEST,
+    DISK_WRITE_REQUEST,
+    DISK_FINISH,
+    PRINT_REQUEST,
+    PRINT_FINISH
 };
-
-/**
- * @enum run_mode
- * @brief Enumeration for different run modes of the kernel.
- */
-enum run_mode { DEFAULT, SKIP };
 
 /**
  * @struct kernel
@@ -38,6 +38,7 @@ struct kernel {
     struct segment_table seg_table;
     struct sched scheduler;
     struct vector semaphore_table;
+    struct io_module io_module;
     unsigned cur_process_time;
 };
 
