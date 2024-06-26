@@ -10,8 +10,8 @@ struct ui_process ui_process_create(WINDOW *parent_win)
 {
 
     struct ui_process tmp = {
-        .win = derwin(stdscr, (getmaxy(parent_win) - 2) * 3 / 5,
-            getmaxx(parent_win) * 3 / 5, 1, 0),
+        .win = derwin(stdscr, (getmaxy(parent_win) - 1) * 3 / 5,
+            getmaxx(parent_win) * 3 / 5, 0, 0),
         .menuwin
         = derwin(tmp.win, getmaxy(tmp.win) - 3, getmaxx(tmp.win) - 2, 2, 1),
         .highlight = 0,
@@ -33,8 +33,11 @@ struct ui_process ui_process_create(WINDOW *parent_win)
 
     wattron(tmp.win, COLOR_PAIR(CP_TITLE));
     mvwprintw(tmp.win, 1, 1,
-        "%3.3s %12.12s %3.3s %c %9.9s %3.3s %6.6s %8.8s %5.5s %7.7s", "PID",
-        "NAME", "PRI", 'S', "PC/TOTAL", "SID", "MEM_KB", "TIME", "OP", "OPVAL");
+        " "
+        "%3.3s %12.12s %3.3s %c %9.9s %3.3s %6.6s %8.8s %5.5s %7.7s"
+        " ",
+        "PID", "NAME", "PRI", 'S', "PC/TOTAL", "SID", "MEM_KB", "TIME", "OP",
+        "OPVAL");
     wattroff(tmp.win, COLOR_PAIR(CP_TITLE));
     wrefresh(tmp.win);
     return tmp;
@@ -50,14 +53,16 @@ void ui_process_render(struct ui_process *ui_process)
     for (size_t i = 0; i < ui_process->proc_info.length; i++) {
         struct process_info *info = vector_get(&ui_process->proc_info, i);
         if (ui_process->highlight == (int)i) {
-            wattron(ui_process->menuwin, COLOR_PAIR(CP_LIST_ITEM));
+            wattron(ui_process->menuwin, COLOR_PAIR(CP_LIST_HIGHLIGHT));
             wattron(ui_process->menuwin, A_REVERSE);
         }
 
         // Just to not fuck up the menu, i'm using MIN macro
         mvwprintw(ui_process->menuwin, i, 0,
+            " "
             "%3.3hu %12.12s  %2.2hu %c %4.4lu/%-4.4lu %3.3hu %6.6lu %6.6luUT "
-            "%5.5s %7.7s",
+            "%5.5s %7.7s"
+            " ",
             MIN(info->process_id, 999), info->name, MIN(info->priority, 99),
             info->process_state, MIN(info->program_counter, 9999),
             MIN(info->instr_total, 9999), MIN(info->segment_id, 999),

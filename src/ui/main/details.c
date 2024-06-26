@@ -12,7 +12,7 @@ struct ui_details ui_details_create(WINDOW *parent_win)
     int row, col;
     getmaxyx(parent_win, row, col);
     struct ui_details tmp = {
-        .win = derwin(stdscr, row - 2, col * 2 / 5, 1, col * 3 / 5),
+        .win = derwin(stdscr, row - 1, col * 2 / 5, 0, col * 3 / 5),
         .menu_semaphore
         = derwin(tmp.win, getmaxy(tmp.win) - 3, getmaxx(tmp.win) / 2 - 1, 2, 1),
         .menu_page = derwin(tmp.win, getmaxy(tmp.win) - 3,
@@ -58,12 +58,12 @@ struct ui_details ui_details_create(WINDOW *parent_win)
 
     // Semaphore table
     wattron(tmp.win,COLOR_PAIR(CP_TITLE));
-    mvwprintw(tmp.win, 1, 1, "%4.4s %4.4s %4.4s", "NAME", "WPID", "WAIT");
+    mvwprintw(tmp.win, 1, 1, " %4.4s %7.7s %7.7s ", "NAME", "WORKPID", "WAITING");
     wattroff(tmp.win,COLOR_PAIR(CP_TITLE));
 
     // Page table
     wattron(tmp.win,COLOR_PAIR(CP_TITLE));
-    mvwprintw(tmp.win, 1, getmaxx(tmp.win) / 2 + 1, "%4.4s %5.5s %6.6s", "PGID",
+    mvwprintw(tmp.win, 1, getmaxx(tmp.win) / 2 + 1, " %4.4s %5.5s %6.6s ", "PGID",
         "USING", "ONDISK");
     wattroff(tmp.win,COLOR_PAIR(CP_TITLE));
 
@@ -85,14 +85,14 @@ void ui_details_render(struct ui_details *ui_details)
         sprintf(wpid, info->working_process_id < 0 ? "   " : "%3.3hu",
             (uint16_t)info->working_process_id);
 
-        mvwprintw(ui_details->menu_semaphore, i, 0, "%4.4s  %3.3s %4.4lu",
+        mvwprintw(ui_details->menu_semaphore, i, 0, " %4.4s     %3.3s    %4.4lu ",
             info->name, wpid, info->waiting_counter);
     }
 
     // page table
     for (size_t i = 0; i < ui_details->page_info.length; ++i) {
         struct page_info *info = vector_get(&ui_details->page_info, i);
-        mvwprintw(ui_details->menu_page, i, 0, "%4.4d %-5.5s  %-5.5s",
+        mvwprintw(ui_details->menu_page, i, 0, " %4.4d %-5.5s  %-5.5s ",
             info->page_id, info->using ? truestr : falsestr,
             info->on_disk ? truestr : falsestr);
     }

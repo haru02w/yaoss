@@ -108,3 +108,51 @@ void get_page_info(struct vector *page_info, uint16_t pid)
             sizeof(struct page_info));
     }
 }
+
+void get_sysioinfo(struct vector *io_info, struct sysio_info *sysio_info)
+{
+    io_info->length = io_info->capacity = 3;
+    void *ptr
+        = realloc(io_info->data, io_info->length * sizeof(struct io_info));
+    assert(ptr != NULL);
+    io_info->data = ptr;
+
+    memcpy(&io_info->data[0 * sizeof(struct io_info)],
+        &(struct io_info) {
+            .io_id = 999,
+            .track = 99,
+            .rw = true,
+            .process_id = 999,
+            .seektime = 999,
+        },
+        sizeof(struct io_info));
+
+    memcpy(&io_info->data[1 * sizeof(struct io_info)],
+        &(struct io_info) {
+            .io_id = 100,
+            .track = 10,
+            .rw = true,
+            .process_id = 98,
+            .seektime = 997,
+        },
+        sizeof(struct io_info));
+
+    memcpy(&io_info->data[2 * sizeof(struct io_info)],
+        &(struct io_info) {
+            .io_id = 96,
+            .track = 8,
+            .rw = false,
+            .process_id = 11,
+            .seektime = 347,
+        },
+        sizeof(struct io_info));
+
+    *sysio_info = (struct sysio_info) {
+        .track = 3,
+        .running_io_id = 100,
+        .track_total = 4,
+        .speed = 100,
+        .memory_usage_kb
+        = (MAX_MEMORY_SIZE - kernel.seg_table.remaining_memory) / KILOBYTE,
+    };
+}

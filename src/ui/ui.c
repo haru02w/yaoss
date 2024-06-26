@@ -4,8 +4,8 @@
 #include "colors.h"
 #include "main/details.h"
 #include "main/footer.h"
-#include "main/header.h"
 #include "main/process.h"
+#include "main/sysinfo.h"
 #include <curses.h>
 #include <menu.h>
 #include <stdint.h>
@@ -29,10 +29,10 @@ void run_curses()
     double ut_change = UT_CHANGE_INITIAL;
 
     ui_create_stdscr();
-    struct ui_header ui_header = ui_create_header(stdscr);
     struct ui_process ui_process = ui_process_create(stdscr);
     struct ui_details ui_details = ui_details_create(stdscr);
     struct ui_footer ui_footer = ui_footer_create(stdscr);
+    struct ui_sysinfo ui_sysinfo = ui_sysinfo_create(stdscr);
     kernel_init();
 
     ui_footer_render(&ui_footer);
@@ -61,10 +61,12 @@ void run_curses()
 
         get_sem_info(&ui_details.sem_info, ui_process.highlight);
         get_page_info(&ui_details.page_info, ui_process.highlight);
+        get_sysioinfo(&ui_sysinfo.io_info, &ui_sysinfo.sysio_info);
 
-        ui_render_header(&ui_header, ut, time_elapsed);
+        ui_sysinfo_render(&ui_sysinfo, ut, time_elapsed);
         ui_process_render(&ui_process);
         ui_details_render(&ui_details);
+
         switch (getch()) {
         case 'n':
             next_instr = true;
@@ -115,10 +117,10 @@ void run_curses()
     };
 end:
     kernel_shutdown();
-    ui_destroy_header(&ui_header);
     ui_process_destroy(&ui_process);
     ui_details_destroy(&ui_details);
     ui_footer_destroy(&ui_footer);
+    ui_sysinfo_destroy(&ui_sysinfo);
     ui_destroy_stdscr();
 }
 
@@ -133,7 +135,9 @@ void ui_create_stdscr()
     curs_set(0); // disable cursor
     start_color();
     init_pair(CP_DEFAULT, COLOR_WHITE, COLOR_BLACK);
-    init_pair(CP_LIST_ITEM, COLOR_GREEN, COLOR_BLACK);
+    init_pair(CP_LIST_ITEM, COLOR_WHITE, COLOR_BLACK);
+    init_pair(CP_LIST_HIGHLIGHT, COLOR_GREEN, COLOR_BLACK);
+    init_pair(CP_ACTIVE, COLOR_YELLOW, COLOR_BLACK);
     init_pair(CP_LINE, COLOR_BLUE, COLOR_BLACK);
     init_pair(CP_TITLE, COLOR_BLACK, COLOR_WHITE);
 }
