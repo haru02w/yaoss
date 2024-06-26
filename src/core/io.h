@@ -7,7 +7,7 @@
 struct io_module {
     struct disk_module {
         struct vector request_list;
-        unsigned int velocity;
+        unsigned int speed;
         unsigned int cur_track;
         char direction;
 
@@ -15,6 +15,8 @@ struct io_module {
         unsigned int cur_cycle;
         unsigned int rw_cycle;
         unsigned int move_cycle;
+
+        size_t cur_request_id;
     } disk_module;
     struct vector print_queue;
 };

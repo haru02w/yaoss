@@ -1,4 +1,5 @@
 #include "core2ui.h"
+#include "core/io.h"
 #include "core/kernel_acess.h"
 #include "core/memory.h"
 #include "util/vector.h"
@@ -111,48 +112,40 @@ void get_page_info(struct vector *page_info, uint16_t pid)
 
 void get_sysioinfo(struct vector *io_info, struct sysio_info *sysio_info)
 {
-    io_info->length = io_info->capacity = 3;
+    struct disk_module *disk_module = &kernel.io_module.disk_module;
+
+    *sysio_info = (struct sysio_info) {
+        .track = disk_module->cur_track,
+        .running_io_id = disk_module->cur_request_id,
+        .track_total = DISK_MAXIMUM_TRACK,
+        .speed = disk_module->speed,
+        .memory_usage_kb
+        = (MAX_MEMORY_SIZE - kernel.seg_table.remaining_memory) / KILOBYTE,
+    };
+
+    struct vector *io_request_list = &disk_module->request_list;
+
+    if (io_request_list->length == 0) {
+        io_info->length = 0;
+        return;
+    }
+
+    io_info->length = io_info->capacity = io_request_list->length;
     void *ptr
         = realloc(io_info->data, io_info->length * sizeof(struct io_info));
     assert(ptr != NULL);
     io_info->data = ptr;
 
-    memcpy(&io_info->data[0 * sizeof(struct io_info)],
-        &(struct io_info) {
-            .io_id = 999,
-            .track = 99,
-            .rw = true,
-            .process_id = 999,
-            .seektime = 999,
-        },
-        sizeof(struct io_info));
-
-    memcpy(&io_info->data[1 * sizeof(struct io_info)],
-        &(struct io_info) {
-            .io_id = 100,
-            .track = 10,
-            .rw = true,
-            .process_id = 98,
-            .seektime = 997,
-        },
-        sizeof(struct io_info));
-
-    memcpy(&io_info->data[2 * sizeof(struct io_info)],
-        &(struct io_info) {
-            .io_id = 96,
-            .track = 8,
-            .rw = false,
-            .process_id = 11,
-            .seektime = 347,
-        },
-        sizeof(struct io_info));
-
-    *sysio_info = (struct sysio_info) {
-        .track = 3,
-        .running_io_id = 100,
-        .track_total = 4,
-        .speed = 100,
-        .memory_usage_kb
-        = (MAX_MEMORY_SIZE - kernel.seg_table.remaining_memory) / KILOBYTE,
-    };
+    for (size_t i = 0; i < io_info->length; i++) {
+        struct io_disk_request *request = vector_get(io_request_list, i);
+        memcpy(&io_info->data[i * sizeof(struct io_info)],
+            &(struct io_info) {
+                .io_id = request->id,
+                .track = request->track,
+                .rw = request->operation,
+                .process_id = request->process->pid,
+                .seektime = request->seek_time,
+            },
+            sizeof(struct io_info));
+    }
 }

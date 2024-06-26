@@ -4,16 +4,17 @@
 
 void io_module_init(struct io_module *io_module)
 {
-    unsigned int random_velocity = 7200;
+    unsigned int random_speed = 7200;
 
     *io_module = (struct io_module) { .disk_module
         = { .request_list = vector_create(sizeof(struct io_disk_request)),
-            .velocity = random_velocity,
+            .speed = random_speed,
             .cur_track = 0,
             .direction = 'R',
             .count_cycle = 0,
-            .move_cycle = 100 * (DISK_MAXIMUM_TRACK / (float)random_velocity),
-            .rw_cycle = 10000 * (DISK_MAXIMUM_TRACK / (float)random_velocity) },
+            .move_cycle = 100 * (DISK_MAXIMUM_TRACK / (float)random_speed),
+            .rw_cycle = 10000 * (DISK_MAXIMUM_TRACK / (float)random_speed),
+            .cur_request_id = -1 },
         .print_queue = vector_create(sizeof(struct io_print_request)) };
 
     io_module->disk_module.cur_cycle = io_module->disk_module.move_cycle;
@@ -26,13 +27,26 @@ static int io_disk_request_cmp(const void *a, const void *b)
     return request_1->track - request_2->track;
 }
 
+static size_t io_disk_get_next_id(struct vector *request_list)
+{
+    if (request_list->length == 0) {
+        return 0;
+    }
+
+    return ((struct io_disk_request *)vector_get(
+                request_list, request_list->length - 1))
+               ->id
+        + 1;
+}
+
 void io_disk_submit_request(struct disk_module *disk_module, pdata_t *process,
     size_t track, enum io_disk_operation operation)
 {
-    struct io_disk_request request = { .id = disk_module->request_list.length,
-        .process = process,
-        .track = track,
-        .operation = operation };
+    struct io_disk_request request
+        = { .id = io_disk_get_next_id(&disk_module->request_list),
+              .process = process,
+              .track = track,
+              .operation = operation };
 
     if (disk_module->cur_track > track) {
         if (disk_module->direction == 'R') {
@@ -102,6 +116,7 @@ void io_disk_schedule(struct disk_module *disk_module)
             &disk_module->request_list, disk_module->cur_track);
         if (req != NULL) {
             disk_module->cur_cycle = disk_module->rw_cycle;
+            disk_module->cur_request_id = req->id;
             return;
         }
     } else {
@@ -109,9 +124,11 @@ void io_disk_schedule(struct disk_module *disk_module)
         struct io_disk_request *req = io_disk_visit_track(
             &disk_module->request_list, disk_module->cur_track);
         if (req != NULL) {
+            disk_module->cur_request_id = req->id;
             return;
         }
         disk_module->cur_cycle = disk_module->move_cycle;
+        disk_module->cur_request_id = -1;
     }
 
     io_disk_update_direction(disk_module);
