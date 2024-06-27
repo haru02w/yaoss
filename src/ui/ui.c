@@ -64,7 +64,7 @@ void run_curses()
         get_sysioinfo(&ui_sysinfo.io_info, &ui_sysinfo.sysio_info);
 
         ui_sysinfo_render(&ui_sysinfo, ut, time_elapsed);
-        ui_process_render(&ui_process);
+        ui_process_render(&ui_process, &ui_sysinfo.sysio_info);
         ui_details_render(&ui_details);
 
         switch (getch()) {
@@ -134,10 +134,10 @@ void ui_create_stdscr()
     nodelay(stdscr, TRUE); // don't block thread when getting input
     curs_set(0); // disable cursor
     start_color();
+
     init_pair(CP_DEFAULT, COLOR_WHITE, COLOR_BLACK);
     init_pair(CP_LIST_ITEM, COLOR_WHITE, COLOR_BLACK);
-    init_pair(CP_LIST_HIGHLIGHT, COLOR_GREEN, COLOR_BLACK);
-    init_pair(CP_ACTIVE, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(CP_LIST_ACTIVE, COLOR_BLACK, COLOR_YELLOW);
     init_pair(CP_LINE, COLOR_BLUE, COLOR_BLACK);
     init_pair(CP_TITLE, COLOR_BLACK, COLOR_WHITE);
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "../../core2ui.h"
 #include "../../util/vector.h"
 #include <curses.h>
 
@@ -10,5 +11,6 @@ struct ui_process {
 };
 
 struct ui_process ui_process_create(WINDOW *parent_win);
-void ui_process_render(struct ui_process *ui_process);
+void ui_process_render(
+    struct ui_process *ui_process, struct sysio_info *sysio_info);
 void ui_process_destroy(struct ui_process *ui_process);

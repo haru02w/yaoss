@@ -33,7 +33,7 @@ struct ui_process ui_process_create(WINDOW *parent_win)
 
     wattron(tmp.win, COLOR_PAIR(CP_TITLE));
     mvwprintw(tmp.win, 1, 1,
-        " "
+        "** "
         "%3.3s %12.12s %3.3s %c %9.9s %3.3s %6.6s %8.8s %5.5s %7.7s"
         " ",
         "PID", "NAME", "PRI", 'S', "PC/TOTAL", "SID", "MEM_KB", "TIME", "OP",
@@ -43,7 +43,8 @@ struct ui_process ui_process_create(WINDOW *parent_win)
     return tmp;
 }
 
-void ui_process_render(struct ui_process *ui_process)
+void ui_process_render(
+    struct ui_process *ui_process, struct sysio_info *sysio_info)
 {
 
     /* NOTE: get data from core */
@@ -52,25 +53,29 @@ void ui_process_render(struct ui_process *ui_process)
 
     for (size_t i = 0; i < ui_process->proc_info.length; i++) {
         struct process_info *info = vector_get(&ui_process->proc_info, i);
+        bool highlightit = ui_process->highlight == (int)i;
+
+        if (info->process_id == sysio_info->running_process_id) {
+            wattron(ui_process->menuwin, COLOR_PAIR(CP_LIST_ACTIVE));
+        }
         if (ui_process->highlight == (int)i) {
-            wattron(ui_process->menuwin, COLOR_PAIR(CP_LIST_HIGHLIGHT));
-            wattron(ui_process->menuwin, A_REVERSE);
+            wattron(ui_process->menuwin, A_BOLD);
         }
 
         // Just to not fuck up the menu, i'm using MIN macro
         mvwprintw(ui_process->menuwin, i, 0,
-            " "
+            "%s "
             "%3.3hu %12.12s  %2.2hu %c %4.4lu/%-4.4lu %3.3hu %6.6lu %6.6luUT "
-            "%5.5s %7.7s"
-            " ",
-            MIN(info->process_id, 999), info->name, MIN(info->priority, 99),
-            info->process_state, MIN(info->program_counter, 9999),
-            MIN(info->instr_total, 9999), MIN(info->segment_id, 999),
-            MIN(info->memory_usage_kb, 999999),
+            "%5.5s %7.7s ",
+            highlightit ? "->" : "  ", MIN(info->process_id, 999), info->name,
+            MIN(info->priority, 99), info->process_state,
+            MIN(info->program_counter, 9999), MIN(info->instr_total, 9999),
+            MIN(info->segment_id, 999), MIN(info->memory_usage_kb, 999999),
             MIN(info->time_elapsed_ut, 999999), info->operation,
             info->operation_value);
-        wattroff(ui_process->menuwin, A_REVERSE);
-        wattroff(ui_process->menuwin, COLOR_PAIR(CP_LIST_ITEM));
+
+        wattroff(ui_process->menuwin, A_BOLD);
+        wattroff(ui_process->menuwin, COLOR_PAIR(CP_LIST_ACTIVE));
     }
     wrefresh(ui_process->menuwin);
 }

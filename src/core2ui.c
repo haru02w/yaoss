@@ -10,12 +10,6 @@
 #include <string.h>
 #include <time.h>
 
-void get_simulation_info(struct sim_info *sim_info)
-{
-    sim_info->memory_usage_kb
-        = (MAX_MEMORY_SIZE - kernel.seg_table.remaining_memory) / KILOBYTE;
-}
-
 void get_proc_info(struct vector *proc_info)
 {
     proc_info->length = kernel.process_table.length;
@@ -119,6 +113,9 @@ void get_sysioinfo(struct vector *io_info, struct sysio_info *sysio_info)
         .running_io_id = disk_module->cur_request_id,
         .track_total = DISK_MAXIMUM_TRACK,
         .speed = disk_module->speed,
+        .running_process_id = kernel.scheduler.atual != NULL
+            ? (int32_t)kernel.scheduler.atual->pid
+            : -1,
         .memory_usage_kb
         = (MAX_MEMORY_SIZE - kernel.seg_table.remaining_memory) / KILOBYTE,
     };

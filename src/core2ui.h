@@ -3,12 +3,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-struct sim_info {
-    uint64_t memory_usage_kb;
-};
-
-//***
-
 struct process_info {
     uint16_t process_id;
     char *name;
@@ -49,9 +43,9 @@ struct sysio_info {
     uint32_t track;
     uint32_t track_total;
     uint16_t running_io_id;
+    int32_t running_process_id;
 };
 
-void get_simulation_info(struct sim_info *sim_info);
 void get_proc_info(struct vector *proc_info /* struct process_info */);
 void get_sem_info(
     struct vector *sem_info /* struct semaphore_info */, uint16_t pid);

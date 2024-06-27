@@ -112,8 +112,7 @@ void ioinfo_render(struct ui_sysinfo *ui_sysinfo)
     for (size_t i = 0; i < ui_sysinfo->io_info.length; i++) {
         struct io_info *info = vector_get(&ui_sysinfo->io_info, i);
         if (info->io_id == ui_sysinfo->sysio_info.running_io_id) {
-            wattron(ui_sysinfo->menuio, A_REVERSE);
-            wattron(ui_sysinfo->menuio, COLOR_PAIR(CP_ACTIVE));
+            wattron(ui_sysinfo->menuio, COLOR_PAIR(CP_LIST_ACTIVE));
         }
 
         mvwprintw(ui_sysinfo->menuio, i, 0,
@@ -122,8 +121,7 @@ void ioinfo_render(struct ui_sysinfo *ui_sysinfo)
             " ",
             info->io_id, info->process_id, info->track, info->seektime,
             info->rw ? 'W' : 'R');
-        wattroff(ui_sysinfo->menuio, A_REVERSE);
-        wattroff(ui_sysinfo->menuio, COLOR_PAIR(CP_ACTIVE));
+        wattroff(ui_sysinfo->menuio, COLOR_PAIR(CP_LIST_ACTIVE));
     }
     wrefresh(ui_sysinfo->menuio);
 }

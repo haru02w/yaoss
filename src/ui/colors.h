@@ -5,5 +5,6 @@ enum COLOR_PAIRS {
     CP_LIST_ITEM,
     CP_LINE,
     CP_TITLE,
-    CP_ACTIVE,
+    CP_LIST_ACTIVE,
+    CP_LIST_HA,
 };
