@@ -18,7 +18,8 @@ struct ui_sysinfo ui_sysinfo_create(WINDOW *parent_win)
         .syswin = derwin(
             tmp.win, getmaxy(tmp.win) - 2, (getmaxx(tmp.win) - 2) / 2, 1, 1),
         .menuio = derwin(tmp.win, getmaxy(tmp.win) - 3,
-            (getmaxx(tmp.win) / 2) - 1, 2, getmaxx(tmp.syswin) + 2),
+            getmaxx(tmp.win) - getmaxx(tmp.syswin) - 3, 2,
+            getmaxx(tmp.syswin) + 2),
         .io_info = vector_create(sizeof(struct io_info)),
     };
     wattron(tmp.win, COLOR_PAIR(CP_LINE));
@@ -26,10 +27,9 @@ struct ui_sysinfo ui_sysinfo_create(WINDOW *parent_win)
     wattroff(tmp.win, COLOR_PAIR(CP_LINE));
 
     // paint white title line
-    wmove(tmp.win, 1, getmaxx(tmp.syswin) + 2);
+    wmove(tmp.win, 1, getbegx(tmp.menuio));
     wattron(tmp.win, COLOR_PAIR(CP_TITLE));
-    while (getcurx(tmp.win) < getmaxx(tmp.win) - 1)
-        waddch(tmp.win, ' ');
+    whline(tmp.win, ' ', getmaxx(tmp.menuio));
     wattroff(tmp.win, COLOR_PAIR(CP_TITLE));
 
     // Write system info title
@@ -67,11 +67,6 @@ struct ui_sysinfo ui_sysinfo_create(WINDOW *parent_win)
         mvwaddch(tmp.win, i, getmaxx(tmp.win) / 2, ACS_VLINE);
     mvwaddch(tmp.win, getmaxy(tmp.win) - 1, getmaxx(tmp.win) / 2, ACS_BTEE);
     wattroff(tmp.win, COLOR_PAIR(CP_LINE));
-
-    // // General System Info
-    // wattron(tmp.syswin, COLOR_PAIR(CP_TITLE));
-    // wprintw(tmp.syswin, "System Information:\n");
-    // wattroff(tmp.syswin, COLOR_PAIR(CP_TITLE));
 
     wprintw(tmp.syswin, "\nUT: ");
     getyx(tmp.syswin, tmp.pos[0].y, tmp.pos[0].x);
@@ -140,7 +135,9 @@ void ioinfo_render(struct ui_sysinfo *ui_sysinfo)
 {
     werase(ui_sysinfo->menuio);
 
-    for (size_t i = 0; i < ui_sysinfo->io_info.length; i++) {
+    for (size_t i = 0;
+         i < ui_sysinfo->io_info.length && (int)i < getmaxy(ui_sysinfo->menuio);
+         i++) {
         struct io_info *info = vector_get(&ui_sysinfo->io_info, i);
         if (info->io_id == ui_sysinfo->sysio_info.running_io_id) {
             wattron(ui_sysinfo->menuio, COLOR_PAIR(CP_LIST_ACTIVE));
@@ -152,8 +149,7 @@ void ioinfo_render(struct ui_sysinfo *ui_sysinfo)
             " ",
             info->io_id, info->process_id, info->track, info->seektime,
             info->rw ? 'W' : 'R');
-        while (getcury(ui_sysinfo->menuio) < (int)i + 1)
-            waddch(ui_sysinfo->menuio, ' ');
+        whline(ui_sysinfo->menuio, ' ', getmaxx(ui_sysinfo->menuio));
         wattroff(ui_sysinfo->menuio, COLOR_PAIR(CP_LIST_ACTIVE));
     }
     wrefresh(ui_sysinfo->menuio);

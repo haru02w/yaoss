@@ -27,8 +27,7 @@ struct ui_details ui_details_create(WINDOW *parent_win)
     // paint white title line
     wmove(tmp.win, 1, 1);
     wattron(tmp.win, COLOR_PAIR(CP_TITLE));
-    while (getcurx(tmp.win) < getmaxx(tmp.win) - 1)
-        waddch(tmp.win, ' ');
+    whline(tmp.win, ' ', getmaxx(tmp.win) - 2);
     wattroff(tmp.win, COLOR_PAIR(CP_TITLE));
 
     // Write semaphore title

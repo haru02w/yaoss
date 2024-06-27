@@ -24,8 +24,7 @@ struct ui_process ui_process_create(WINDOW *parent_win)
     // paint white title line
     wmove(tmp.win, 1, 1);
     wattron(tmp.win, COLOR_PAIR(CP_TITLE));
-    while (getcurx(tmp.win) < getmaxx(tmp.win) - 1)
-        waddch(tmp.win, ' ');
+    whline(tmp.win, ' ', getmaxx(tmp.win) - 2);
     wattroff(tmp.win, COLOR_PAIR(CP_TITLE));
 
     char *title = "Process List";
@@ -58,7 +57,9 @@ void ui_process_render(
 
     werase(ui_process->menuwin);
 
-    for (size_t i = 0; i < ui_process->proc_info.length; i++) {
+    for (size_t i = 0; i < ui_process->proc_info.length
+         && (int)i < getmaxy(ui_process->menuwin);
+         i++) {
         struct process_info *info = vector_get(&ui_process->proc_info, i);
         bool highlightit = ui_process->highlight == (int)i;
 
@@ -80,8 +81,7 @@ void ui_process_render(
             MIN(info->segment_id, 999), MIN(info->memory_usage_kb, 999999),
             MIN(info->time_elapsed_ut, 999999), info->operation,
             info->operation_value);
-        while (getcury(ui_process->menuwin) <(int)i + 1)
-            waddch(ui_process->menuwin, ' ');
+        whline(ui_process->menuwin, ' ', getmaxx(ui_process->menuwin));
         wattroff(ui_process->menuwin, A_BOLD);
         wattroff(ui_process->menuwin, COLOR_PAIR(CP_LIST_ACTIVE));
     }

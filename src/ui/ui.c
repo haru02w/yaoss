@@ -73,7 +73,8 @@ void run_curses()
             break;
         case KEY_DOWN:
             // scroll down
-            if (ui_process.highlight + 1 < (int)ui_process.proc_info.length)
+            if (ui_process.highlight + 1 < (int)ui_process.proc_info.length
+                && ui_process.highlight + 1 < getmaxy(ui_process.menuwin))
                 ++ui_process.highlight;
             break;
         case KEY_UP:
