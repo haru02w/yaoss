@@ -24,8 +24,8 @@ void ui_footer_render(struct ui_footer *main_footer)
 {
     werase(main_footer->win);
     wprintw(main_footer->win,
-        " Q:close simulation, C:create process, SPACE:start/pause simulation, "
-        "+/-/0:change speed, N:next ut");
+        " Q: close simulation, C: create process, SPACE: toggle running, "
+        "+/-/0: change ut, N: next ut");
     wrefresh(main_footer->win);
 }
 

@@ -3,6 +3,7 @@
 #include "../colors.h"
 #include <curses.h>
 #include <stdint.h>
+#include <string.h>
 
 void sysinfo_render(
     struct ui_sysinfo *ui_sysinfo, double ut, uint64_t time_elapsed);
@@ -13,21 +14,51 @@ struct ui_sysinfo ui_sysinfo_create(WINDOW *parent_win)
     struct ui_sysinfo tmp = {
         .win = derwin(stdscr,
             (getmaxy(parent_win) - 1) - ((getmaxy(parent_win) - 1) * 3 / 5),
-            getmaxx(parent_win) * 3 / 5, (getmaxy(parent_win) - 1) * 3 / 5,
-            0),
+            getmaxx(parent_win) * 3 / 5, (getmaxy(parent_win) - 1) * 3 / 5, 0),
         .syswin = derwin(
             tmp.win, getmaxy(tmp.win) - 2, (getmaxx(tmp.win) - 2) / 2, 1, 1),
         .menuio = derwin(tmp.win, getmaxy(tmp.win) - 3,
-            ((getmaxx(tmp.win) - 2) / 2) - 1, 2, getmaxx(tmp.syswin) + 2),
+            (getmaxx(tmp.win) / 2) - 1, 2, getmaxx(tmp.syswin) + 2),
         .io_info = vector_create(sizeof(struct io_info)),
     };
     wattron(tmp.win, COLOR_PAIR(CP_LINE));
     box(tmp.win, 0, 0);
     wattroff(tmp.win, COLOR_PAIR(CP_LINE));
 
+    // paint white title line
+    wmove(tmp.win, 1, getmaxx(tmp.syswin) + 2);
+    wattron(tmp.win, COLOR_PAIR(CP_TITLE));
+    while (getcurx(tmp.win) < getmaxx(tmp.win) - 1)
+        waddch(tmp.win, ' ');
+    wattroff(tmp.win, COLOR_PAIR(CP_TITLE));
+
+    // Write system info title
+    char *title_sem = "System Info";
+    wmove(tmp.win, 0, ((getmaxx(tmp.win) / 2) - strlen(title_sem) - 2) / 2);
+    wattron(tmp.win, COLOR_PAIR(CP_LINE));
+    waddch(tmp.win, ACS_RTEE);
+    wattroff(tmp.win, COLOR_PAIR(CP_LINE));
+    waddstr(tmp.win, title_sem);
+    wattron(tmp.win, COLOR_PAIR(CP_LINE));
+    waddch(tmp.win, ACS_LTEE);
+    wattroff(tmp.win, COLOR_PAIR(CP_LINE));
+
+    // Write I/O Request List title
+    char *title_io = "I/O Request List";
+    wmove(tmp.win, 0,
+        (getmaxx(tmp.win) / 2)
+            + ((getmaxx(tmp.win) / 2) - strlen(title_io) - 2) / 2);
+    wattron(tmp.win, COLOR_PAIR(CP_LINE));
+    waddch(tmp.win, ACS_RTEE);
+    wattroff(tmp.win, COLOR_PAIR(CP_LINE));
+    waddstr(tmp.win, title_io);
+    wattron(tmp.win, COLOR_PAIR(CP_LINE));
+    waddch(tmp.win, ACS_LTEE);
+    wattroff(tmp.win, COLOR_PAIR(CP_LINE));
+
     // Debugging
     // box(tmp.syswin, 0, 0);
-    box(tmp.menuio, 0, 0);
+    // box(tmp.menuio, 0, 0);
 
     // put a line in the middle
     wattron(tmp.win, COLOR_PAIR(CP_LINE));
@@ -37,10 +68,10 @@ struct ui_sysinfo ui_sysinfo_create(WINDOW *parent_win)
     mvwaddch(tmp.win, getmaxy(tmp.win) - 1, getmaxx(tmp.win) / 2, ACS_BTEE);
     wattroff(tmp.win, COLOR_PAIR(CP_LINE));
 
-    // General System Info
-    wattron(tmp.syswin, COLOR_PAIR(CP_TITLE));
-    wprintw(tmp.syswin, "System Information:\n");
-    wattroff(tmp.syswin, COLOR_PAIR(CP_TITLE));
+    // // General System Info
+    // wattron(tmp.syswin, COLOR_PAIR(CP_TITLE));
+    // wprintw(tmp.syswin, "System Information:\n");
+    // wattroff(tmp.syswin, COLOR_PAIR(CP_TITLE));
 
     wprintw(tmp.syswin, "\nUT: ");
     getyx(tmp.syswin, tmp.pos[0].y, tmp.pos[0].x);
@@ -121,6 +152,8 @@ void ioinfo_render(struct ui_sysinfo *ui_sysinfo)
             " ",
             info->io_id, info->process_id, info->track, info->seektime,
             info->rw ? 'W' : 'R');
+        while (getcury(ui_sysinfo->menuio) < (int)i + 1)
+            waddch(ui_sysinfo->menuio, ' ');
         wattroff(ui_sysinfo->menuio, COLOR_PAIR(CP_LIST_ACTIVE));
     }
     wrefresh(ui_sysinfo->menuio);

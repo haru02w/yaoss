@@ -24,6 +24,13 @@ struct ui_details ui_details_create(WINDOW *parent_win)
     box(tmp.win, 0, 0);
     wattroff(tmp.win, COLOR_PAIR(CP_LINE));
 
+    // paint white title line
+    wmove(tmp.win, 1, 1);
+    wattron(tmp.win, COLOR_PAIR(CP_TITLE));
+    while (getcurx(tmp.win) < getmaxx(tmp.win) - 1)
+        waddch(tmp.win, ' ');
+    wattroff(tmp.win, COLOR_PAIR(CP_TITLE));
+
     // Write semaphore title
     char *title_sem = "Semaphore List";
     wmove(tmp.win, 0, ((getmaxx(tmp.win) / 2) - strlen(title_sem) - 2) / 2);
@@ -39,7 +46,7 @@ struct ui_details ui_details_create(WINDOW *parent_win)
     char *title_page = "Pages List";
     wmove(tmp.win, 0,
         (getmaxx(tmp.win) / 2)
-            + ((getmaxx(tmp.win) / 2) - strlen(title_sem) - 2) / 2);
+            + ((getmaxx(tmp.win) / 2) - strlen(title_page) - 2) / 2);
     wattron(tmp.win, COLOR_PAIR(CP_LINE));
     waddch(tmp.win, ACS_RTEE);
     wattroff(tmp.win, COLOR_PAIR(CP_LINE));
@@ -57,15 +64,16 @@ struct ui_details ui_details_create(WINDOW *parent_win)
     wattroff(tmp.win, COLOR_PAIR(CP_LINE));
 
     // Semaphore table
-    wattron(tmp.win,COLOR_PAIR(CP_TITLE));
-    mvwprintw(tmp.win, 1, 1, " %4.4s %7.7s %7.7s ", "NAME", "WORKPID", "WAITING");
-    wattroff(tmp.win,COLOR_PAIR(CP_TITLE));
+    wattron(tmp.win, COLOR_PAIR(CP_TITLE));
+    mvwprintw(
+        tmp.win, 1, 1, " %4.4s %7.7s %7.7s ", "NAME", "WORKPID", "WAITING");
+    wattroff(tmp.win, COLOR_PAIR(CP_TITLE));
 
     // Page table
-    wattron(tmp.win,COLOR_PAIR(CP_TITLE));
-    mvwprintw(tmp.win, 1, getmaxx(tmp.win) / 2 + 1, " %4.4s %5.5s %6.6s ", "PGID",
-        "USING", "ONDISK");
-    wattroff(tmp.win,COLOR_PAIR(CP_TITLE));
+    wattron(tmp.win, COLOR_PAIR(CP_TITLE));
+    mvwprintw(tmp.win, 1, getmaxx(tmp.win) / 2 + 1, " %4.4s %5.5s %6.6s ",
+        "PGID", "USING", "ONDISK");
+    wattroff(tmp.win, COLOR_PAIR(CP_TITLE));
 
     wrefresh(tmp.win);
     return tmp;
@@ -85,8 +93,9 @@ void ui_details_render(struct ui_details *ui_details)
         sprintf(wpid, info->working_process_id < 0 ? "   " : "%3.3hu",
             (uint16_t)info->working_process_id);
 
-        mvwprintw(ui_details->menu_semaphore, i, 0, " %4.4s     %3.3s    %4.4lu ",
-            info->name, wpid, info->waiting_counter);
+        mvwprintw(ui_details->menu_semaphore, i, 0,
+            " %4.4s     %3.3s    %4.4lu ", info->name, wpid,
+            info->waiting_counter);
     }
 
     // page table
