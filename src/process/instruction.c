@@ -1,4 +1,5 @@
 #include "instruction.h"
+#include "../core/io.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,11 +44,15 @@ instruction_t *inst_read(char *string)
     case 2: { // READ
         inst->op = READ;
         inst->value = atoi(&(string[i]));
+        if (inst->value > DISK_MAXIMUM_TRACK)
+            inst->value = DISK_MAXIMUM_TRACK;
         break;
     }
     case 5: { // WRITE
         inst->op = WRITE;
         inst->value = atoi(&(string[i]));
+        if (inst->value > DISK_MAXIMUM_TRACK)
+            inst->value = DISK_MAXIMUM_TRACK;
         break;
     }
     case 6: { // V()

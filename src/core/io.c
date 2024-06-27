@@ -30,14 +30,15 @@ static int io_disk_request_cmp(const void *a, const void *b)
 
 static size_t io_disk_get_next_id(struct vector *request_list)
 {
-    if (request_list->length == 0) {
-        return 0;
+    size_t max_id = 0;
+
+    for (size_t i = 0; i < request_list->length; i++) {
+        struct io_disk_request *req = vector_get(request_list, i);
+        if (req->id > max_id)
+            max_id = req->id;
     }
 
-    return ((struct io_disk_request *)vector_get(
-                request_list, request_list->length - 1))
-               ->id
-        + 1;
+    return max_id + 1;
 }
 
 void io_disk_submit_request(struct disk_module *disk_module, pdata_t *process,
