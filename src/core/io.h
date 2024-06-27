@@ -2,7 +2,9 @@
 #include "../process/process.h"
 #include "../util/vector.h"
 
-#define DISK_MAXIMUM_TRACK 500
+#define DISK_MAXIMUM_TRACK 200
+#define DISK_MAXIMUM_SPEED 7200
+#define DISK_MINIMUM_SPEED 7000
 
 struct io_module {
     struct disk_module {

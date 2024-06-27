@@ -106,6 +106,7 @@ void get_page_info(struct vector *page_info, uint16_t pid)
 
 void get_sysioinfo(struct vector *io_info, struct sysio_info *sysio_info)
 {
+    srand(time(NULL));
     struct disk_module *disk_module = &kernel.io_module.disk_module;
 
     *sysio_info = (struct sysio_info) {

@@ -4,7 +4,8 @@
 
 void io_module_init(struct io_module *io_module)
 {
-    unsigned int random_speed = 7200;
+    unsigned int random_speed = DISK_MINIMUM_SPEED
+        + rand() % (DISK_MAXIMUM_SPEED - DISK_MINIMUM_SPEED);
 
     *io_module = (struct io_module) { .disk_module
         = { .request_list = vector_create(sizeof(struct io_disk_request)),
@@ -12,8 +13,8 @@ void io_module_init(struct io_module *io_module)
             .cur_track = 0,
             .direction = 'R',
             .count_cycle = 0,
-            .move_cycle = 100 * (DISK_MAXIMUM_TRACK / (float)random_speed),
-            .rw_cycle = 10000 * (DISK_MAXIMUM_TRACK / (float)random_speed),
+            .move_cycle = 200 * (DISK_MAXIMUM_TRACK / (float)random_speed),
+            .rw_cycle = 20000 * (DISK_MAXIMUM_TRACK / (float)random_speed),
             .cur_request_id = -1 },
         .print_queue = vector_create(sizeof(struct io_print_request)) };
 
@@ -110,6 +111,9 @@ void io_disk_schedule(struct disk_module *disk_module)
     }
 
     disk_module->count_cycle = 0;
+
+    disk_module->speed = DISK_MINIMUM_SPEED
+        + rand() % (DISK_MAXIMUM_SPEED - DISK_MINIMUM_SPEED);
 
     if (disk_module->cur_cycle == disk_module->move_cycle) {
         struct io_disk_request *req = io_disk_visit_track(
